@@ -1,6 +1,6 @@
 import { useContext, useEffect } from "react";
 import { useParams } from "react-router-dom"
-import { roomContext } from "../../ReactContexts/RoomConnectContext";
+import { roomContext } from "../ReactContexts/RoomConnectContext";
 
 export const Room = () => {
 

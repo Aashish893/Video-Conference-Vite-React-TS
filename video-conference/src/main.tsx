@@ -4,8 +4,8 @@ import App from './App.tsx'
 import './index.css'
 import { RoomProvider } from './ReactContexts/RoomConnectContext.tsx'
 import { BrowserRouter,Route, Routes } from 'react-router-dom'
-import { Home } from './assets/Pages/Home.tsx'
-import { Room } from './assets/Pages/Room.tsx'
+import { Home } from './Pages/Home.tsx'
+import { Room } from './Pages/Room.tsx'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
