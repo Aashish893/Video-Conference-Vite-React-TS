@@ -1,13 +1,11 @@
-import { useContext } from "react"
-import { roomContext } from "../ReactContexts/RoomConnectContext"
-
+import { ws } from "../ws";
 export const Create:React.FC = () => {
 
-    const {ws} = useContext(roomContext);
-
     const CreateRoom = () => {
-        ws.send(JSON.stringify({create:"room"}));
+        ws.send(JSON.stringify({ type: 'createRoom'}));
     };
+
+
     return(
         <button onClick={CreateRoom}>
             Connect to Room

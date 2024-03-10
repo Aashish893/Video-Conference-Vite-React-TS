@@ -1,15 +1,14 @@
-import { useContext, useEffect } from "react";
 import { useParams } from "react-router-dom"
-import { roomContext } from "../ReactContexts/RoomConnectContext";
+import { ws } from "../ws";
 
 export const Room = () => {
 
     const {id} = useParams();
-    const {ws} = useContext(roomContext);
-    
-    useEffect(() => {
-        ws.send(JSON.stringify({joinroom:id}))
-    },[id]);
+    ws.send(JSON.stringify({ type: 'joinRoom', id }))
+    // useEffect(() => {
+    //     
+    //     console.log("executed");
+    // },[id]);
 
     return(
         <>

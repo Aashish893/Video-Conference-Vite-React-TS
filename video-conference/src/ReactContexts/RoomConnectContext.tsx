@@ -1,39 +1,54 @@
-import { createContext, ReactNode, useEffect} from "react";
+import React, { createContext, useState, useEffect} from 'react';
 import { useNavigate } from "react-router-dom";
-
-
-const WS_URL = "ws://localhost:8080";
+import { ws } from '../ws';
 
 export const roomContext = createContext<null | any>(null);
 
-const ws = new WebSocket(WS_URL);
+
+interface RoomContextProps {
+  roomId: string | null;
+  setRoomId: (roomId: string) => void;
+  
+}
+
+export const RoomContext = createContext<RoomContextProps>({
+  roomId: "" ,
+  setRoomId: () => {},
+});
+
 
 interface Props {
-    children: ReactNode;
-  }
+  children: React.ReactNode;
+}
 
-export const RoomProvider: React.FunctionComponent<Props> = ({ children }) => {
+export const RoomProvider : React.FunctionComponent<Props> = ({children}) => {
 
   const navigate = useNavigate();
+  const [roomId, setRoomId] = useState<string>("");
 
-  const enterRoom = ({roomId} : {roomId:'strign'}) =>{
-    console.log("entered the room",roomId);
-    navigate(`/room/${roomId}`);
+  const enterRoom = ({roomId} : {roomId : string}) => {
+      setRoomId(roomId);
+      navigate(`/room/${roomId}`);
   }
-  useEffect( () => {
-    ws.onmessage = (event) =>{
-      var message=JSON.parse(event.data);
+
+
+  useEffect(() => {
+    console.log("created room");        
+    ws.onmessage = (event) =>{ 
+      const message = JSON.parse(event.data.toString());
       console.log(message);
-      if(message.roomcreated){
-        //enter room with messaag
-        enterRoom({ roomId: message.roomcreated.toString() });
+      if (message.type === 'createRoomSuccess'){
+        enterRoom(message);
       }
     }
-  },[] );
 
-  return (
-    <roomContext.Provider value={{ ws }}>
-      {children}
-    </roomContext.Provider>
+  });
+
+
+  return(
+    <RoomContext.Provider value={{roomId,setRoomId}}>
+        {children}
+    </RoomContext.Provider>
   );
-};
+
+}
