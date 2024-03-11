@@ -5,11 +5,11 @@ var uuid_1 = require("uuid");
 var rooms = new Map();
 var roomHandler = function (ws) {
     var createRoom = function () {
-        var roomId = (0, uuid_1.v4)();
-        rooms.set(roomId, { id: roomId, clients: new Set() });
+        var generatedRoomId = (0, uuid_1.v4)();
+        rooms.set(generatedRoomId, { roomId: generatedRoomId, clients: new Set() });
         console.log(rooms);
-        ws.send(JSON.stringify({ type: 'createRoomSuccess', id: roomId }));
-        console.log(roomId, " Room Created");
+        ws.send(JSON.stringify({ type: 'createRoomSuccess', roomID: generatedRoomId }));
+        console.log(generatedRoomId, " Room Created");
     };
     var joinRoom = function (roomId) {
         if (!rooms.has(roomId)) {
@@ -17,7 +17,7 @@ var roomHandler = function (ws) {
             return;
         }
         rooms.get(roomId).clients.add(ws);
-        ws.send(JSON.stringify({ type: 'joinRoomSuccess', id: roomId }));
+        ws.send(JSON.stringify({ type: 'joinRoomSuccess', roomID: roomId }));
         console.log(roomId, "Joined Room");
     };
     ws.on('message', function (message) {
@@ -27,7 +27,7 @@ var roomHandler = function (ws) {
             createRoom();
         }
         else if (messageData.type === 'joinRoom') {
-            joinRoom(messageData.id);
+            joinRoom(messageData.roomID);
         }
     });
 };

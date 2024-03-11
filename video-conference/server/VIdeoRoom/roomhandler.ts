@@ -2,19 +2,20 @@ import {WebSocket} from 'ws';
 import {v4 as uuidv4} from 'uuid';
 
 type Room = {
-    id: string;
+    roomId: string;
     clients: Set<WebSocket>;
+    
   };
   
 const rooms: Map<string, Room> = new Map();
 
 export const roomHandler = (ws:WebSocket) => {
     const createRoom = () =>{
-        const roomId = uuidv4();
-        rooms.set(roomId, { id: roomId, clients: new Set() });
+        const generatedRoomId = uuidv4();
+        rooms.set(generatedRoomId, { roomId: generatedRoomId, clients: new Set() });
         console.log(rooms);
-        ws.send(JSON.stringify({ type: 'createRoomSuccess', id : roomId }));
-        console.log(roomId ,  " Room Created");
+        ws.send(JSON.stringify({ type: 'createRoomSuccess', roomID : generatedRoomId }));
+        console.log(generatedRoomId ,  " Room Created");
     };
 
     const joinRoom = (roomId : string) => {
@@ -23,7 +24,7 @@ export const roomHandler = (ws:WebSocket) => {
             return;
         }
         rooms.get(roomId)!.clients.add(ws);
-        ws.send(JSON.stringify({ type: 'joinRoomSuccess', id:roomId }));
+        ws.send(JSON.stringify({ type: 'joinRoomSuccess', roomID : roomId }));
         console.log(roomId, "Joined Room");
     };
 
@@ -35,7 +36,7 @@ export const roomHandler = (ws:WebSocket) => {
             createRoom();
         }
         else if (messageData.type === 'joinRoom'){
-            joinRoom(messageData.id);
+            joinRoom(messageData.roomID);
         }
 
     })

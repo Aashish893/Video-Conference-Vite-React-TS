@@ -25,10 +25,6 @@ wss.on('connection', (ws) =>  {
         console.log('error');
     });    
 
-    ws.on('close', () => {
-        console.log('Client disconnected');
-    });
-
 });
 
 server.listen(port, () => {
