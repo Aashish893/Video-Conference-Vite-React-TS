@@ -1,7 +1,6 @@
-import React, { createContext, useState, useEffect} from 'react';
+import React, { createContext, useEffect, useState} from "react";
 import { useNavigate } from "react-router-dom";
-import { ws } from '../ws';
-
+import { ws } from "../ws";
 export const roomContext = createContext<null | any>(null);
 
 
@@ -26,19 +25,19 @@ export const RoomProvider : React.FunctionComponent<Props> = ({children}) => {
   const navigate = useNavigate();
   const [roomId, setRoomId] = useState<string>("");
 
-  const enterRoom = ({roomId} : {roomId : string}) => {
-      setRoomId(roomId);
-      navigate(`/room/${roomId}`);
+  const enterRoom = (roomId : string) => {
+    console.log(roomId);  
+    setRoomId(roomId);
+
+    navigate(`/room/${roomId}`);
   }
 
-
   useEffect(() => {
-    console.log("created room");        
     ws.onmessage = (event) =>{ 
       const message = JSON.parse(event.data.toString());
-      console.log(message);
+      console.log(message.id);
       if (message.type === 'createRoomSuccess'){
-        enterRoom(message);
+        enterRoom(message.id);
       }
     }
 

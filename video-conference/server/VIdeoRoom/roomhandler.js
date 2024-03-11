@@ -7,7 +7,8 @@ var roomHandler = function (ws) {
     var createRoom = function () {
         var roomId = (0, uuid_1.v4)();
         rooms.set(roomId, { id: roomId, clients: new Set() });
-        ws.send(JSON.stringify({ type: 'createRoomSuccess', roomId: roomId }));
+        console.log(rooms);
+        ws.send(JSON.stringify({ type: 'createRoomSuccess', id: roomId }));
         console.log(roomId, " Room Created");
     };
     var joinRoom = function (roomId) {
@@ -16,17 +17,17 @@ var roomHandler = function (ws) {
             return;
         }
         rooms.get(roomId).clients.add(ws);
-        ws.send(JSON.stringify({ type: 'joinRoomSuccess', roomId: roomId }));
+        ws.send(JSON.stringify({ type: 'joinRoomSuccess', id: roomId }));
         console.log(roomId, "Joined Room");
     };
     ws.on('message', function (message) {
         var messageData = JSON.parse(message);
-        console.log(messageData);
+        console.log(messageData, " received");
         if (messageData.type === 'createRoom') {
             createRoom();
         }
         else if (messageData.type === 'joinRoom') {
-            joinRoom(messageData);
+            joinRoom(messageData.id);
         }
     });
 };

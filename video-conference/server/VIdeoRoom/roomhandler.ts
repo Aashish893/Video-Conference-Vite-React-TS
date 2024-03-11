@@ -12,7 +12,8 @@ export const roomHandler = (ws:WebSocket) => {
     const createRoom = () =>{
         const roomId = uuidv4();
         rooms.set(roomId, { id: roomId, clients: new Set() });
-        ws.send(JSON.stringify({ type: 'createRoomSuccess', roomId }));
+        console.log(rooms);
+        ws.send(JSON.stringify({ type: 'createRoomSuccess', id : roomId }));
         console.log(roomId ,  " Room Created");
     };
 
@@ -22,19 +23,19 @@ export const roomHandler = (ws:WebSocket) => {
             return;
         }
         rooms.get(roomId)!.clients.add(ws);
-        ws.send(JSON.stringify({ type: 'joinRoomSuccess', roomId }));
+        ws.send(JSON.stringify({ type: 'joinRoomSuccess', id:roomId }));
         console.log(roomId, "Joined Room");
     };
 
     ws.on('message', (message : string) => {
         const messageData = JSON.parse(message);
-        console.log(messageData);
+        console.log(messageData , " received");
 
         if (messageData.type ==='createRoom'){
             createRoom();
         }
         else if (messageData.type === 'joinRoom'){
-            joinRoom(messageData);
+            joinRoom(messageData.id);
         }
 
     })
