@@ -20,10 +20,6 @@ export const RoomProvider: React.FunctionComponent<Props> = ({ children }) => {
     navigate(`/room/${roomId}`);
   };
 
-
- // Empty dependency array means this effect runs only once on component mount
-
-  // Reconnect WebSocket if it's closed
   useEffect(() => {
     ws.onmessage = (event) => {
         const message = JSON.parse(event.data.toString());
