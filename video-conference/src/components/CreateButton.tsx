@@ -4,6 +4,7 @@ import { RoomContext } from "../ReactContexts/RoomConnectContext";
 export const Create:React.FC = () => {
 
     const {ws} = useContext(RoomContext) 
+    console.log(ws);
     const CreateRoom = () => {
         ws.send(JSON.stringify({ type: 'createRoom'}));
     };
