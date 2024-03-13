@@ -23,7 +23,7 @@ export const RoomProvider: React.FunctionComponent<Props> = ({ children }) => {
   useEffect(() => {
     ws.onmessage = (event) => {
         const message = JSON.parse(event.data.toString());
-        console.log(message.roomId);
+        console.log(message.roomID);
         if (message.type === "createRoomSuccess") {
           enterRoom(message.roomID);
         }
