@@ -28,7 +28,7 @@ export const RoomProvider: React.FunctionComponent<Props> = ({ children }) => {
     const userId = uuidV4();
     const newUser = new Peer(userId);
     setUser(newUser);
-    console.log(newUser);
+    console.log(newUser,user);
     console.log(ws)
     ws.onmessage = (event) => {    
         const message = JSON.parse(event.data.toString());
@@ -36,7 +36,6 @@ export const RoomProvider: React.FunctionComponent<Props> = ({ children }) => {
         if (message.type === "createRoomSuccess") {
           enterRoom(message.roomID);
         }
-
       }
   }, []);
 
