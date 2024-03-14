@@ -1,5 +1,7 @@
-import { ReactNode, createContext, useEffect } from "react";
+import Peer from "peerjs";
+import { ReactNode, createContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { v4 as uuidV4 } from "uuid";
 
 const WS_Url = "ws://localhost:8080";
 
@@ -8,10 +10,12 @@ export const RoomContext = createContext<null | any>(null);
 interface Props {
   children: ReactNode;
 }
+const ws = new WebSocket(WS_Url);
 
 export const RoomProvider: React.FunctionComponent<Props> = ({ children }) => {
 
-  const ws = new WebSocket(WS_Url);
+
+  const [user, setUser] = useState<Peer>();
 
   const navigate = useNavigate();
 
@@ -21,14 +25,20 @@ export const RoomProvider: React.FunctionComponent<Props> = ({ children }) => {
   };
 
   useEffect(() => {
-    ws.onmessage = (event) => {
+    const userId = uuidV4();
+    const newUser = new Peer(userId);
+    setUser(newUser);
+    console.log(newUser);
+    console.log(ws)
+    ws.onmessage = (event) => {    
         const message = JSON.parse(event.data.toString());
         console.log(message.roomID);
         if (message.type === "createRoomSuccess") {
           enterRoom(message.roomID);
         }
-      }
-  }, [ws]);
 
-  return (<RoomContext.Provider value={{ ws }}>{children}</RoomContext.Provider>);
+      }
+  }, []);
+
+  return (<RoomContext.Provider value={{ ws,user }}>{children}</RoomContext.Provider>);
 };

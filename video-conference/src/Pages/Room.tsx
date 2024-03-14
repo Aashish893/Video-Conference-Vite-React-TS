@@ -4,16 +4,14 @@ import { RoomContext } from "../ReactContexts/RoomConnectContext";
 
 const RoomDisplay: React.FC = () => {
   const { id } = useParams();
-  const { ws } = useContext(RoomContext);
+  const { ws,user } = useContext(RoomContext);
   useEffect(() => {
     console.log(ws)
-    if (ws) {
       ws.onopen = () => {
         console.log(id);
-        ws.send(JSON.stringify({type : "joinRoom" , roomID : id}));
-      };
-    }
-  }, [id]);
+        if(user) ws.send(JSON.stringify({type : "joinRoom" , roomID : id, userID : user._id}));
+      }
+  }, [id,user,ws]);
 
   return (
     <div>
