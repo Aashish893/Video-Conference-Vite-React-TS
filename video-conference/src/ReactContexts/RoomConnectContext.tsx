@@ -28,7 +28,7 @@ export const RoomProvider: React.FunctionComponent<Props> = ({ children }) => {
           enterRoom(message.roomID);
         }
       }
-  }, [ws]);
+  }, []);
 
   return (<RoomContext.Provider value={{ ws }}>{children}</RoomContext.Provider>);
 };
