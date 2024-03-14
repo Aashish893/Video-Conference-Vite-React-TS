@@ -5,16 +5,16 @@ import { v4 as uuidV4 } from "uuid";
 
 const WS_Url = "ws://localhost:8080";
 
+const ws = new WebSocket(WS_Url);
+
+
 export const RoomContext = createContext<null | any>(null);
 
 interface Props {
   children: ReactNode;
 }
-const ws = new WebSocket(WS_Url);
 
 export const RoomProvider: React.FunctionComponent<Props> = ({ children }) => {
-
-
   const [user, setUser] = useState<Peer>();
 
   const navigate = useNavigate();
