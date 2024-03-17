@@ -12,8 +12,12 @@ var roomHandler = function (ws) {
     };
     var joinRoom = function (_a) {
         var roomId = _a.roomId, userId = _a.userId;
-        console.log(roomId, "Joined Room");
-        ws.send(JSON.stringify({ type: 'joinRoomSuccess', roomID: roomId }));
+        if (Rooms[roomId]) {
+            Rooms[roomId].push(userId);
+            ws.send(JSON.stringify({ type: 'joinRoom', roomID: roomId }));
+            ws.send(JSON.stringify({ type: 'getUsers', roomID: roomId, participants: Rooms[roomId] }));
+            console.log(Rooms);
+        }
     };
     ws.on('message', function (message) {
         var messageData = JSON.parse(message);

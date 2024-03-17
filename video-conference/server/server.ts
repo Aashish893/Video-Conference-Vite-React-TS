@@ -19,7 +19,6 @@ const wss = new WebSocketServer({server});
 wss.on('connection', (ws) =>  {
 
     console.log('Connection Successful');
-
     roomHandler(ws);
     ws.on('error', () =>{
         console.log('error');

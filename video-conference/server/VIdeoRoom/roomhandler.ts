@@ -17,9 +17,12 @@ export const roomHandler = (ws:WebSocket) => {
     };
 
     const joinRoom = ({roomId, userId} :RoomProps) => {
-        console.log(roomId, "Joined Room");
-        ws.send(JSON.stringify({ type: 'joinRoomSuccess', roomID : roomId }));
-        
+        if(Rooms[roomId]){
+            Rooms[roomId].push(userId);
+            ws.send(JSON.stringify({ type: 'joinRoomSuccess', roomID : roomId }));
+            ws.send(JSON.stringify({ type: 'getUsers', roomID : roomId , participants :Rooms[roomId] }));
+            console.log(Rooms);            
+        }
     };
 
     ws.on('message', (message : string) => {

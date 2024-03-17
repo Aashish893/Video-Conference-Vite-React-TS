@@ -1,4 +1,3 @@
-import React from 'react'
 import ReactDOM from 'react-dom/client'
 import './index.css'
 import { RoomProvider } from './ReactContexts/RoomConnectContext.tsx'
@@ -7,7 +6,6 @@ import { Home } from './Pages/Home.tsx';
 import RoomDisplay from "./Pages/Room.tsx"
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
     <BrowserRouter>
       <RoomProvider>
         <Routes>
@@ -16,5 +14,4 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         </Routes>
       </RoomProvider>
     </BrowserRouter>    
-  </React.StrictMode>
 )

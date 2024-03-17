@@ -19,25 +19,31 @@ export const RoomProvider: React.FunctionComponent<Props> = ({ children }) => {
 
   const navigate = useNavigate();
 
-  const enterRoom = (roomId: string) => {
+  const enterRoom = ({roomId}:{roomId: string}) => {
     console.log(roomId);
     navigate(`/room/${roomId}`);
   };
+
+  const getUsers =({participants} : {participants : string[]}) => {
+    console.log(participants);
+  }
 
   useEffect(() => {
     const userId = uuidV4();
     const newUser = new Peer(userId);
     setUser(newUser);
-    console.log(newUser,user);
-    console.log(ws)
     ws.onmessage = (event) => {    
         const message = JSON.parse(event.data.toString());
-        console.log(message.roomID);
+        console.log(message);
         if (message.type === "createRoomSuccess") {
-          enterRoom(message.roomID);
+          enterRoom({roomId : message.roomID});
+        }
+        else if(message.type === 'getUsers'){
+          getUsers({participants : message.participants});
         }
       }
   }, []);
 
+  console.log(ws,user)
   return (<RoomContext.Provider value={{ ws,user }}>{children}</RoomContext.Provider>);
 };

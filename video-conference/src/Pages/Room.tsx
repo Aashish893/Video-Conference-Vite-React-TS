@@ -8,8 +8,12 @@ const RoomDisplay: React.FC = () => {
   useEffect(() => {
     console.log(ws);
     console.log(user);
-    if(user)ws.send(JSON.stringify({type : "joinRoom" , roomID : id, userID : user._id}));
-         
+
+    if(user){
+      setTimeout(() => {
+        ws.send(JSON.stringify({type : "joinRoom" , roomID : id, userID : user._id}));
+      },1)
+    }
   }, [id,user,ws]);
 
   return (
