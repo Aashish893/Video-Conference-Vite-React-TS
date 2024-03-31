@@ -74,6 +74,7 @@ export const RoomProvider: React.FunctionComponent<Props> = ({ children }) => {
       }
   }, []);
 
+
   useEffect(() =>{
     if(!user) return 
     if(!stream) return
@@ -91,6 +92,7 @@ export const RoomProvider: React.FunctionComponent<Props> = ({ children }) => {
     })
 
   },[user,stream])
+
 
   console.log({allUsers});
   return (<RoomContext.Provider value={{ ws,user,stream, allUsers}}>{children}</RoomContext.Provider>);
