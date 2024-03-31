@@ -45,6 +45,7 @@ export const RoomProvider: React.FunctionComponent<Props> = ({ children }) => {
       getUsers({participants : message.participants});
     }
     if (message.type === "userJoined"){
+      console.log("This user Joined", message.userID);
       if(user && stream) {
         const call = user.call(message.userID,stream);
         call.on('stream', (userStream) => {
