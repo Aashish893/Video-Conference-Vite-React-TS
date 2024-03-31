@@ -9,7 +9,7 @@ app.get("/health", (_, res) => {
 });
 
 
-const port = process.env.PORT || 8080;
+const port = 8080;
 const server = http.createServer(app);
 
 // New Websocket Server.
@@ -19,7 +19,6 @@ const wss = new WebSocketServer({server});
 wss.on('connection', (ws) =>  {
 
     console.log('Connection Successful');
-
     roomHandler(ws);
     ws.on('error', () =>{
         console.log('error');

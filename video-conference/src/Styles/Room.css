@@ -1,0 +1,31 @@
+@import 'tailwindcss/base';
+
+@import 'tailwindcss/components';
+
+@import 'tailwindcss/utilities';
+
+.room-display {
+  display: flex;
+  flex-wrap: nowrap; /* Prevents wrapping to new rows */
+  overflow-x: auto; /* Enable horizontal scrolling if needed */
+}
+
+.room-display > * {
+  margin-right: 20px; /* Adjust spacing between video calls */
+  flex-shrink: 0; /* Prevent videos from shrinking */
+  height: auto; /* Adjust height as needed */
+}
+
+
+.videoBorder {
+  border:  1px solid red;
+}
+
+body{
+  background-color: aquamarine;
+}
+
+/*
+.grid{
+  border: 5px solid blue;
+}*/

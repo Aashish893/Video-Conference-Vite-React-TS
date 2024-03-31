@@ -8,7 +8,7 @@ var app = express();
 app.get("/health", function (_, res) {
     res.send("Server is running");
 });
-var port = process.env.PORT || 8080;
+var port = 8080;
 var server = http.createServer(app);
 // New Websocket Server.
 var wss = new ws_1.WebSocketServer({ server: server });
