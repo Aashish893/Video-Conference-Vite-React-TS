@@ -64,10 +64,15 @@ export const RoomProvider: React.FunctionComponent<Props> = ({ children }) => {
     setStream(stream);
     setSharedScreenID(user?.id || "" );
     
-    Object.keys(connections).forEach((user:any) => {
+    connections.forEach(call => {
       const videoStream = stream?.getTracks().find(track => track.kind==='video')
-      user[0].peerConnection.getSeners()[1].replaceTrack(videoStream).catch((err: any) => console.log(err));      
+     call.peerConnection.getSenders()[1].replaceTrack(videoStream).catch((err: any) => console.log(err));
     })
+
+    // Object.keys(connections).forEach((user:any) => {
+    //   const videoStream = stream?.getTracks().find(track => track.kind==='video')
+    //   user[0].peerConnection.getSeners()[1].replaceTrack(videoStream).catch((err: any) => console.log(err));      
+    // })
   }
 
   const screenShare = () => {
