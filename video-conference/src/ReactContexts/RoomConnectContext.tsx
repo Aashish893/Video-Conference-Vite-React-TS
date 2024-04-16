@@ -20,11 +20,12 @@ export const RoomProvider: React.FunctionComponent<Props> = ({ children }) => {
   const [user, setUser] = useState<Peer>();
   const [stream,setStream] = useState<MediaStream>();
   const [allUsers, dispatch] = useReducer(userReducer, {});
+  const [sharedScreenID, setSharedScreenID] = useState<String>();
+  const [connections, setConnections] = useState<any[]>([]);
 
   const navigate = useNavigate();
 
   const enterRoom = ({roomId}:{roomId: string}) => {
-    console.log(roomId);
     navigate(`/room/${roomId}`);
   };
 
@@ -34,10 +35,11 @@ export const RoomProvider: React.FunctionComponent<Props> = ({ children }) => {
 
   const removeUser = (userId : string) => {
     dispatch(removeUserAction(userId));
+    setConnections(prevConnections => prevConnections.filter(conn => conn.peer !== userId));
   }
 
   const handleMessage = (message: any) => {
-    console.log(message);
+
     if (message.type === "createRoomSuccess") {
       enterRoom({roomId : message.roomID});
     }
@@ -51,12 +53,33 @@ export const RoomProvider: React.FunctionComponent<Props> = ({ children }) => {
         call.on('stream', (userStream) => {
           dispatch(addUserAction(message.userID,userStream));
         })
+        setConnections(prevConnections => [...prevConnections, call]);
       }
     }
     if(message.type === "userLeft"){
       removeUser(message.userID);
     }
   }
+  const switchStream = (stream: MediaStream) =>{
+    setStream(stream);
+    setSharedScreenID(user?.id || "" );
+    
+    Object.keys(connections).forEach((user:any) => {
+      const videoStream = stream?.getTracks().find(track => track.kind==='video')
+      user[0].peerConnection.getSeners()[1].replaceTrack(videoStream).catch((err: any) => console.log(err));      
+    })
+  }
+
+  const screenShare = () => {
+    if(sharedScreenID){
+      navigator.mediaDevices.getUserMedia({video:true, audio:true}).then(switchStream)
+    }else{
+      navigator.mediaDevices.getDisplayMedia({}).then(switchStream)
+    }
+  };
+
+
+
   useEffect(() => {
     const userId = uuidV4();
     const newUser = new Peer(userId);
@@ -68,8 +91,10 @@ export const RoomProvider: React.FunctionComponent<Props> = ({ children }) => {
     } catch (error) {
       console.error(error);
     }
+    console.log(userId)
     ws.onmessage = (event) => {    
         const message = JSON.parse(event.data.toString());
+        
         handleMessage(message);        
       }
   }, []);
@@ -78,10 +103,10 @@ export const RoomProvider: React.FunctionComponent<Props> = ({ children }) => {
   useEffect(() =>{
     if(!user) return 
     if(!stream) return
-    console.log('working');
+
     ws.onmessage = (event) => {    
       const message = JSON.parse(event.data.toString());
-      console.log(message);
+
       handleMessage(message);
     }
     user.on('call', (call) => {
@@ -93,7 +118,8 @@ export const RoomProvider: React.FunctionComponent<Props> = ({ children }) => {
 
   },[user,stream])
 
-
-  console.log({allUsers});
-  return (<RoomContext.Provider value={{ ws,user,stream, allUsers}}>{children}</RoomContext.Provider>);
+  return (
+  <RoomContext.Provider value={{ ws,user,stream, allUsers, screenShare}}>
+    {children}
+  </RoomContext.Provider>);
 };
