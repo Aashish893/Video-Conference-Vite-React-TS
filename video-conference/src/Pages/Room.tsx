@@ -10,7 +10,7 @@ import { ScreenShareButton } from "../components/ScreenShareButton";
 const RoomDisplay: React.FC = () => {
   const { id } = useParams();
   const { ws,user, stream, allUsers, screenShare } = useContext(RoomContext);
-
+  console.log(allUsers);
 
   useEffect(() => {
 

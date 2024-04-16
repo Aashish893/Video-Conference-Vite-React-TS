@@ -1,4 +1,4 @@
-import Peer from "peerjs";
+import Peer,{MediaConnection} from "peerjs";
 import { ReactNode, createContext, useEffect, useState, useReducer } from "react";
 import { useNavigate } from "react-router-dom";
 import { v4 as uuidV4 } from "uuid";
@@ -21,7 +21,8 @@ export const RoomProvider: React.FunctionComponent<Props> = ({ children }) => {
   const [stream,setStream] = useState<MediaStream>();
   const [allUsers, dispatch] = useReducer(userReducer, {});
   const [sharedScreenID, setSharedScreenID] = useState<String>();
-  const [connections, setConnections] = useState<any[]>([]);
+  const [connections, setConnections] = useState<Map<string, MediaConnection>>(new Map());
+
 
   const navigate = useNavigate();
 
@@ -33,11 +34,22 @@ export const RoomProvider: React.FunctionComponent<Props> = ({ children }) => {
     console.log(participants);
   }
 
-  const removeUser = (userId : string) => {
+  const removeUser = (userId: string) => {
     dispatch(removeUserAction(userId));
-    setConnections(prevConnections => prevConnections.filter(conn => conn.peer !== userId));
-  }
+    removeConnection(userId);
+  };
 
+  const addConnection = (peerId: string, connection: MediaConnection) => {
+    setConnections(prev => new Map(prev).set(peerId, connection));
+  };
+
+  const removeConnection = (peerId: string) => {
+    setConnections(prev => {
+      const newConnections = new Map(prev);
+      newConnections.delete(peerId);
+      return newConnections;
+    });
+  };
   const handleMessage = (message: any) => {
 
     if (message.type === "createRoomSuccess") {
@@ -53,7 +65,7 @@ export const RoomProvider: React.FunctionComponent<Props> = ({ children }) => {
         call.on('stream', (userStream) => {
           dispatch(addUserAction(message.userID,userStream));
         })
-        setConnections(prevConnections => [...prevConnections, call]);
+        addConnection(message.userID, call);
       }
     }
     if(message.type === "userLeft"){
@@ -63,16 +75,14 @@ export const RoomProvider: React.FunctionComponent<Props> = ({ children }) => {
   const switchStream = (stream: MediaStream) =>{
     setStream(stream);
     setSharedScreenID(user?.id || "" );
-    
-    connections.forEach(call => {
-      const videoStream = stream?.getTracks().find(track => track.kind==='video')
-     call.peerConnection.getSenders()[1].replaceTrack(videoStream).catch((err: any) => console.log(err));
-    })
-
-    // Object.keys(connections).forEach((user:any) => {
-    //   const videoStream = stream?.getTracks().find(track => track.kind==='video')
-    //   user[0].peerConnection.getSeners()[1].replaceTrack(videoStream).catch((err: any) => console.log(err));      
-    // })
+    console.log(connections)
+    connections.forEach((connection) => {
+      const videoStream = stream.getTracks().find(track => track.kind === 'video');
+      const sender = connection.peerConnection.getSenders()[1]
+      if (sender && videoStream) {
+        sender.replaceTrack(videoStream).catch(err => console.error('Failed to replace video track', err));
+      }
+    });
   }
 
   const screenShare = () => {
@@ -119,7 +129,9 @@ export const RoomProvider: React.FunctionComponent<Props> = ({ children }) => {
       call.on('stream', (userStream) => {
         dispatch(addUserAction(call.peer,userStream));
       })
+      addConnection(call.peer, call);
     })
+    
 
   },[user,stream])
 
