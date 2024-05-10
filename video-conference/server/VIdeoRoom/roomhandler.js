@@ -33,12 +33,22 @@ var roomHandler = function (ws) {
         broadcast(roomId, { type: 'userLeft', roomID: roomId, userID: userId });
         console.log(Rooms, " After delete");
     };
+    var startSharing = function (_a) {
+        var roomId = _a.roomId, userId = _a.userId;
+        broadcast(roomId, { type: 'user-started-sharing', userID: userId });
+        console.log("sharing screen Id");
+    };
+    var stopSharing = function (roomId) {
+        broadcast(roomId, { type: 'user-stopped-sharing' });
+        console.log("stopeed sharing screen");
+    };
     var broadcast = function (roomId, message) {
         console.log("Broadcasting");
-        connectionMap[roomId].forEach(function (client) {
-            client.send(JSON.stringify(message));
-            console.log("Broadcast sent");
-        });
+        if (connectionMap[roomId]) {
+            connectionMap[roomId].forEach(function (client) {
+                client.send(JSON.stringify(message));
+            });
+        }
     };
     ws.on('message', function (message) {
         var messageData = JSON.parse(message);
@@ -47,6 +57,12 @@ var roomHandler = function (ws) {
         }
         else if (messageData.type === 'joinRoom') {
             joinRoom({ roomId: messageData.roomID, userId: messageData.userID });
+        }
+        else if (messageData.type === 'startSharing') {
+            startSharing({ roomId: messageData.roomID, userId: messageData.userID });
+        }
+        else if (messageData.type === 'stopSharing') {
+            stopSharing(messageData.roomID);
         }
     });
 };

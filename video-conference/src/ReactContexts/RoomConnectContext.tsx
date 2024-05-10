@@ -22,7 +22,7 @@ export const RoomProvider: React.FunctionComponent<Props> = ({ children }) => {
   const [allUsers, dispatch] = useReducer(userReducer, {});
   const [sharedScreenID, setSharedScreenID] = useState<String>();
   const [connections, setConnections] = useState<Map<string, MediaConnection>>(new Map());
-
+  const [roomId, setRoomId] = useState<string>();
 
   const navigate = useNavigate();
 
@@ -71,6 +71,12 @@ export const RoomProvider: React.FunctionComponent<Props> = ({ children }) => {
     if(message.type === "userLeft"){
       removeUser(message.userID);
     }
+    if(message.type === 'user-started-sharing'){
+      setSharedScreenID(message.userID);
+    }
+    if(message.type === 'user-stopped-sharing'){
+      setSharedScreenID ("");
+    }
   }
   const switchStream = (stream: MediaStream) =>{
     setStream(stream);
@@ -107,13 +113,34 @@ export const RoomProvider: React.FunctionComponent<Props> = ({ children }) => {
       console.error(error);
     }
     console.log(userId)
-    ws.onmessage = (event) => {    
-        const message = JSON.parse(event.data.toString());
-        
-        handleMessage(message);        
-      }
+   // Function to handle WebSocket messages
+    const handleWebSocketMessage = (event: any) => {
+      const message = JSON.parse(event.data.toString());
+      handleMessage(message);
+    };
+
+    // Subscribe to WebSocket messages
+    ws.addEventListener('message', handleWebSocketMessage);
+
+    // Cleanup function
+    return () => {
+      // Unsubscribe from WebSocket messages
+      ws.removeEventListener('message', handleWebSocketMessage);
+    };
   }, []);
 
+
+  useEffect(() => {
+    if(sharedScreenID){
+      console.log("Sending shared ID");
+        ws.send(JSON.stringify({type : "startSharing" , userID: sharedScreenID, roomID : roomId}));
+    }
+    else{
+      setTimeout(() => {
+        ws.send(JSON.stringify({type : "stopSharing", roomID: roomId}));
+      },200)
+    }
+  },[sharedScreenID,roomId]);
 
   useEffect(() =>{
     if(!user) return 
@@ -136,7 +163,7 @@ export const RoomProvider: React.FunctionComponent<Props> = ({ children }) => {
   },[user,stream])
 
   return (
-  <RoomContext.Provider value={{ ws,user,stream, allUsers, screenShare}}>
+  <RoomContext.Provider value={{ ws,user,stream, allUsers, screenShare,sharedScreenID,setRoomId}}>
     {children}
   </RoomContext.Provider>);
 };

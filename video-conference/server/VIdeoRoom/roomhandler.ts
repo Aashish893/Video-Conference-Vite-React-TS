@@ -1,5 +1,5 @@
 import {WebSocket} from 'ws';
-import {v4 as uuidv4} from 'uuid';
+import { v4 as uuidv4 } from 'uuid';
 
 const Rooms : Record<string, string []> = {}
 
@@ -44,12 +44,23 @@ export const roomHandler = (ws:WebSocket) => {
         console.log(Rooms, " After delete");
     }
 
+    const startSharing = ({roomId,userId}: RoomProps) =>{
+        broadcast(roomId,{type : 'user-started-sharing',userID : userId});
+        console.log("sharing screen Id");
+    }
+
+    const stopSharing = (roomId : string) =>{
+        broadcast(roomId,{type : 'user-stopped-sharing'});
+        console.log("stopeed sharing screen");
+    }
+
     const broadcast = (roomId : string, message : any) => {
         console.log("Broadcasting");
-        connectionMap[roomId].forEach(client => {
-            client.send(JSON.stringify(message));
-            console.log("Broadcast sent");
-        })        
+        if(connectionMap[roomId]){
+            connectionMap[roomId].forEach(client => {
+                client.send(JSON.stringify(message));
+            })        
+        }
     }
 
     ws.on('message', (message : string) => {
@@ -61,5 +72,11 @@ export const roomHandler = (ws:WebSocket) => {
             joinRoom({roomId : messageData.roomID , userId : messageData.userID});
         }
 
+        else if (messageData.type === 'startSharing'){
+            startSharing({roomId:messageData.roomID,userId:messageData.userID});
+        }
+        else if (messageData.type === 'stopSharing'){
+            stopSharing(messageData.roomID);
+        }
     })
 }
