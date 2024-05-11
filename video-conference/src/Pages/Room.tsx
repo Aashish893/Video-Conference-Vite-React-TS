@@ -3,8 +3,10 @@ import { useParams } from "react-router-dom";
 import { RoomContext } from "../ReactContexts/RoomConnectContext";
 import { VideoCall } from "../components/VideoCall";
 import { UserState } from "../Reducers/userReducer";
-import '../Styles/Room.css'
+
 import { ScreenShareButton } from "../components/ScreenShareButton";
+import { ChatButton } from "../components/ChatButton";
+import { Chat } from "../components/Chat/Chat";
 
 
 const RoomDisplay: React.FC = () => {
@@ -32,26 +34,32 @@ const RoomDisplay: React.FC = () => {
   const{[sharedScreenID]: sharing,...usersToShow} = allUsers;
   return (
     <>
-    Room Id : {id}
-    <div className="flex">
-      {screenSharedVideo &&(
-        <div className="w-4/5 pr-4">
-          <VideoCall stream = {screenSharedVideo}/>
+      <div className="flex flex-col min-h-screen">
+        <div className="bg-blue-500 p-1">
+          Room Id : {id}
         </div>
-      )}
-      <div className={`grid grid-cols-4 gap-4 ${screenSharedVideo ? "w-1/5 grid-cols-1": "grid-cols-4"}`}>
-        {sharedScreenID !== user?.id && (
-          <VideoCall stream = {stream}/>
-        )}
-        {Object.values(usersToShow as UserState).map((peer) => (
-          <VideoCall stream={peer.stream} />
-        ))}
-    
-      </div>
-    </div>
-
-      <div className="fixed bottom-0 p-6 w-full flex justify-center border-t-2">
-        <ScreenShareButton onClick={screenShare} />
+        <div className="flex grow">
+          {screenSharedVideo &&(
+            <div className="w-4/5 pr-4">
+              <VideoCall stream = {screenSharedVideo}/>
+            </div>
+          )}
+          <div className={`grid grid-cols-4 gap-4 ${screenSharedVideo ? "w-1/5 grid-cols-1": "grid-cols-4"}`}>
+            {sharedScreenID !== user?.id && (
+              <VideoCall stream = {stream}/>
+            )}
+            {Object.values(usersToShow as UserState).map((peer) => (
+              <VideoCall stream={peer.stream} />
+            ))}
+          </div>
+          <div className="border-l-2 pb-28">
+              <Chat/>
+          </div>
+        </div>  
+        <div className="fixed bottom-0 p-6 w-full flex justify-center border-t-2">
+          <ScreenShareButton onClick={screenShare} />
+          <ChatButton onClick={screenShare}/>
+        </div>
       </div>
     </>
   );

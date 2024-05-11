@@ -103,7 +103,11 @@ export const RoomProvider: React.FunctionComponent<Props> = ({ children }) => {
 
   useEffect(() => {
     const userId = uuidV4();
-    const newUser = new Peer(userId);
+    const newUser = new Peer(userId, {
+      host : 'localhost',
+      port : 9001,
+      path : '/'
+    });
     setUser(newUser);
     try {
       navigator.mediaDevices.getUserMedia({video:true,audio:true}).then((stream) => {
