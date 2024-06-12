@@ -1,4 +1,4 @@
-import React, { useContext, useEffect } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { RoomContext } from "../ReactContexts/RoomConnectContext";
 import { VideoCall } from "../components/VideoCall";
@@ -8,57 +8,57 @@ import { ScreenShareButton } from "../components/ScreenShareButton";
 import { ChatButton } from "../components/ChatButton";
 import { Chat } from "../components/Chat/Chat";
 
-
 const RoomDisplay: React.FC = () => {
   const { id } = useParams();
-  const { ws,user, stream, allUsers, screenShare, sharedScreenID, setRoomId } = useContext(RoomContext);
+  const { ws, user, stream, allUsers, screenShare, sharedScreenID, setRoomId } =
+    useContext(RoomContext);
+  const [joinedRoom, setJoinedRoom] = useState(false);
   console.log(allUsers);
   console.log(sharedScreenID);
-  
+
   useEffect(() => {
-
-    if(user){
+    if (user) {
       setTimeout(() => {
-        ws.send(JSON.stringify({type : "joinRoom" , roomID : id, userID : user._id}));
-      },200)
+        ws.send(
+          JSON.stringify({ type: "joinRoom", roomID: id, userID: user._id })
+        );
+      }, 1000);
     }
-  }, [id,user,ws]);
+  }, [id, user, ws]);
 
-  useEffect(() =>{
-    
+  useEffect(() => {
     setRoomId(id);
-  },[id,setRoomId]);
+  }, [id, setRoomId]);
 
-  const screenSharedVideo = sharedScreenID === user?.id? stream: allUsers[sharedScreenID]?.stream;
+  const screenSharedVideo =
+    sharedScreenID === user?.id ? stream : allUsers[sharedScreenID]?.stream;
 
-  const{[sharedScreenID]: sharing,...usersToShow} = allUsers;
+  const { [sharedScreenID]: sharing, ...usersToShow } = allUsers;
   return (
     <>
       <div className="flex flex-col min-h-screen">
-        <div className="bg-blue-500 p-1">
-          Room Id : {id}
-        </div>
+        <div className="bg-blue-500 p-1">Room Id : {id}</div>
         <div className="flex grow">
-          {screenSharedVideo &&(
+          {screenSharedVideo && (
             <div className="w-4/5 pr-4">
-              <VideoCall stream = {screenSharedVideo}/>
+              <VideoCall stream={screenSharedVideo} />
             </div>
           )}
-          <div className={`grid grid-cols-4 gap-4 ${screenSharedVideo ? "w-1/5 grid-cols-1": "grid-cols-4"}`}>
-            {sharedScreenID !== user?.id && (
-              <VideoCall stream = {stream}/>
-            )}
+          <div
+            className={`grid grid-cols-4 gap-4 ${screenSharedVideo ? "w-1/5 grid-cols-1" : "grid-cols-4"}`}
+          >
+            {sharedScreenID !== user?.id && <VideoCall stream={stream} />}
             {Object.values(usersToShow as UserState).map((peer) => (
               <VideoCall stream={peer.stream} />
             ))}
           </div>
           <div className="border-l-2 pb-28">
-              <Chat/>
+            <Chat />
           </div>
-        </div>  
+        </div>
         <div className="fixed bottom-0 p-6 w-full flex justify-center border-t-2">
           <ScreenShareButton onClick={screenShare} />
-          <ChatButton onClick={screenShare}/>
+          <ChatButton onClick={screenShare} />
         </div>
       </div>
     </>

@@ -10,7 +10,7 @@ export type UserActions =
 | 
 {
     type : typeof REMOVE_USER, payload : {userId : string}
-}
+};
 
 export const userReducer = (state : UserState, action : UserActions) => {
     switch(action.type){
