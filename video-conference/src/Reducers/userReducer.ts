@@ -1,4 +1,4 @@
-import { ADD_USER, REMOVE_USER } from "../ReactContexts/userActions";
+import { ADD_USER, REMOVE_USER } from "./userActions";
 
 export type UserState = Record<string,{stream : MediaStream}>
 
@@ -10,7 +10,7 @@ export type UserActions =
 | 
 {
     type : typeof REMOVE_USER, payload : {userId : string}
-}
+};
 
 export const userReducer = (state : UserState, action : UserActions) => {
     switch(action.type){

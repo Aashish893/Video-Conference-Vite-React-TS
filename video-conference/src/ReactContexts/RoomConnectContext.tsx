@@ -1,14 +1,22 @@
-import Peer from "peerjs";
-import { ReactNode, createContext, useEffect, useState, useReducer } from "react";
+import Peer, { MediaConnection } from "peerjs";
+import {
+  ReactNode,
+  createContext,
+  useEffect,
+  useState,
+  useReducer,
+} from "react";
 import { useNavigate } from "react-router-dom";
 import { v4 as uuidV4 } from "uuid";
 import { userReducer } from "../Reducers/userReducer";
-import { addUserAction, removeUserAction } from "./userActions";
+import { addUserAction, removeUserAction } from "../Reducers/userActions";
+import { chatReducer, ChatState } from "../Reducers/chatReducer";
+import { MessageType } from "../types/chat";
+import { addHistoryAction, addMessageAction } from "../Reducers/chatActions";
 
 const WS_Url = "ws://localhost:8080";
 
 const ws = new WebSocket(WS_Url);
-
 
 export const RoomContext = createContext<null | any>(null);
 
@@ -18,82 +26,228 @@ interface Props {
 
 export const RoomProvider: React.FunctionComponent<Props> = ({ children }) => {
   const [user, setUser] = useState<Peer>();
-  const [stream,setStream] = useState<MediaStream>();
+  const [stream, setStream] = useState<MediaStream>();
+  const [chat, chatDispatch] = useReducer(chatReducer, {
+    messages: [],
+  });
   const [allUsers, dispatch] = useReducer(userReducer, {});
+  const [sharedScreenID, setSharedScreenID] = useState<String>();
+  const [connections, setConnections] = useState<Map<string, MediaConnection>>(
+    new Map()
+  );
+  const [roomId, setRoomId] = useState<string>();
 
   const navigate = useNavigate();
 
-  const enterRoom = ({roomId}:{roomId: string}) => {
-    console.log(roomId);
+  const enterRoom = ({ roomId }: { roomId: string }) => {
     navigate(`/room/${roomId}`);
   };
 
-  const getUsers =({participants} : {participants : string[]}) => {
-    console.log(participants);
-  }
+  const getUsers = ({ participants }: { participants: string[] }) => {
+    console.log(participants, " GETTING USERS");
+  };
 
-  const removeUser = (userId : string) => {
+  const removeUser = (userId: string) => {
     dispatch(removeUserAction(userId));
-  }
+    removeConnection(userId);
+  };
+
+  const addConnection = (peerId: string, connection: MediaConnection) => {
+    setConnections((prev) => new Map(prev).set(peerId, connection));
+  };
+
+  const removeConnection = (peerId: string) => {
+    setConnections((prev) => {
+      const newConnections = new Map(prev);
+      newConnections.delete(peerId);
+      return newConnections;
+    });
+  };
+
+  const chatMessage = (message: MessageType) => {
+    console.log(message, " NEW MESSAGE RECIEVED");
+    chatDispatch(addMessageAction(message));
+  };
+
+  const addChatHistory = (message: MessageType[]) => {
+    console.log(message, " ADDED TO HISTORY");
+    chatDispatch(addHistoryAction(message));
+  };
 
   const handleMessage = (message: any) => {
-    console.log(message);
     if (message.type === "createRoomSuccess") {
-      enterRoom({roomId : message.roomID});
+      enterRoom({ roomId: message.roomID });
     }
-    if(message.type === 'getUsers'){
-      getUsers({participants : message.participants});
+    if (message.type === "getUsers") {
+      getUsers({ participants: message.participants });
     }
-    if (message.type === "userJoined"){
-      console.log("This user Joined", message.userID);
-      if(user && stream) {
-        const call = user.call(message.userID,stream);
-        call.on('stream', (userStream) => {
-          dispatch(addUserAction(message.userID,userStream));
-        })
-      }
-    }
-    if(message.type === "userLeft"){
+    // if (message.type === "userJoined") {
+    //   console.log("This user Joined", message.userID);
+    //   if (user && stream) {
+    //     const call = user.call(message.userID, stream);
+    //     call.on("stream", (userStream) => {
+    //       dispatch(addUserAction(message.userID, userStream));
+    //     });
+    //     addConnection(message.userID, call);
+    //   }
+    // }
+    if (message.type === "userLeft") {
       removeUser(message.userID);
     }
-  }
+    if (message.type === "user-started-sharing") {
+      setSharedScreenID(message.userID);
+    }
+    if (message.type === "user-stopped-sharing") {
+      setSharedScreenID("");
+    }
+    if (message.type === "chat-message") {
+      chatMessage(message.messageContent);
+      console.log(message.messageContent);
+    }
+    if (message.type === "getMessages") {
+      addChatHistory(message.chats);
+    }
+  };
+  //Sharing The Screen
+  const switchStream = (stream: MediaStream) => {
+    setStream(stream);
+    setSharedScreenID(user?.id || "");
+    console.log(connections);
+    connections.forEach((connection) => {
+      const videoStream = stream
+        .getTracks()
+        .find((track) => track.kind === "video");
+      const sender = connection.peerConnection.getSenders()[1];
+      if (sender && videoStream) {
+        sender
+          .replaceTrack(videoStream)
+          .catch((err) => console.error("Failed to replace video track", err));
+      }
+    });
+  };
+
+  const screenShare = () => {
+    if (sharedScreenID) {
+      navigator.mediaDevices
+        .getUserMedia({ video: true, audio: true })
+        .then(switchStream);
+    } else {
+      navigator.mediaDevices.getDisplayMedia({}).then(switchStream);
+    }
+  };
+
+  //Chat
+  const sendMessage = (message: string) => {
+    const messageData: MessageType = {
+      content: message,
+      author: user?.id || "",
+      timestamp: new Date().getTime(),
+    };
+    console.log(messageData);
+    chatDispatch(addMessageAction(messageData));
+    ws.send(
+      JSON.stringify({
+        type: "sendMessage",
+        roomID: roomId,
+        message: messageData,
+      })
+    );
+  };
+
   useEffect(() => {
     const userId = uuidV4();
-    const newUser = new Peer(userId);
+    const newUser = new Peer(userId, {
+      host: "localhost",
+      port: 9001,
+      path: "/",
+    });
     setUser(newUser);
     try {
-      navigator.mediaDevices.getUserMedia({video:true,audio:true}).then((stream) => {
-        setStream(stream);
-      })
+      navigator.mediaDevices
+        .getUserMedia({ video: true, audio: true })
+        .then((stream) => {
+          setStream(stream);
+        });
     } catch (error) {
       console.error(error);
     }
-    ws.onmessage = (event) => {    
-        const message = JSON.parse(event.data.toString());
-        handleMessage(message);        
-      }
+    console.log(userId);
+    // Function to handle WebSocket messages
+    const handleWebSocketMessage = (event: any) => {
+      const message = JSON.parse(event.data.toString());
+      handleMessage(message);
+    };
+
+    // Subscribe to WebSocket messages
+    ws.addEventListener("message", handleWebSocketMessage);
+
+    // Cleanup function
+    return () => {
+      // Unsubscribe from WebSocket messages
+      ws.removeEventListener("message", handleWebSocketMessage);
+    };
   }, []);
 
-
-  useEffect(() =>{
-    if(!user) return 
-    if(!stream) return
-    console.log('working');
-    ws.onmessage = (event) => {    
-      const message = JSON.parse(event.data.toString());
-      console.log(message);
-      handleMessage(message);
+  useEffect(() => {
+    if (sharedScreenID) {
+      console.log("Sending shared ID");
+      ws.send(
+        JSON.stringify({
+          type: "startSharing",
+          userID: sharedScreenID,
+          roomID: roomId,
+        })
+      );
+    } else {
+      setTimeout(() => {
+        ws.send(JSON.stringify({ type: "stopSharing", roomID: roomId }));
+      }, 200);
     }
-    user.on('call', (call) => {
-      call.answer(stream)
-      call.on('stream', (userStream) => {
-        dispatch(addUserAction(call.peer,userStream));
-      })
-    })
+  }, [sharedScreenID, roomId]);
 
-  },[user,stream])
+  useEffect(() => {
+    if (!user) return;
+    if (!stream) return;
 
+    ws.onmessage = (event) => {
+      const message = JSON.parse(event.data.toString());
+      if (message.type === "userJoined") {
+        console.log("This user Joined", message.userID);
+        if (user && stream) {
+          const call = user.call(message.userID, stream);
+          call.on("stream", (userStream) => {
+            dispatch(addUserAction(message.userID, userStream));
+          });
+          addConnection(message.userID, call);
+        }
+      }
+      // handleMessage(message);
+    };
 
-  console.log({allUsers});
-  return (<RoomContext.Provider value={{ ws,user,stream, allUsers}}>{children}</RoomContext.Provider>);
+    user.on("call", (call) => {
+      call.answer(stream);
+      call.on("stream", (userStream) => {
+        dispatch(addUserAction(call.peer, userStream));
+      });
+      addConnection(call.peer, call);
+    });
+  }, [user, stream]);
+  console.log(chat, " FROM CONTEXT!");
+  return (
+    <RoomContext.Provider
+      value={{
+        ws,
+        user,
+        stream,
+        allUsers,
+        screenShare,
+        sharedScreenID,
+        setRoomId,
+        sendMessage,
+        chat,
+      }}
+    >
+      {children}
+    </RoomContext.Provider>
+  );
 };
