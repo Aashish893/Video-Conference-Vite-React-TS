@@ -12,7 +12,6 @@ const RoomDisplay: React.FC = () => {
   const { id } = useParams();
   const { ws, user, stream, allUsers, screenShare, sharedScreenID, setRoomId } =
     useContext(RoomContext);
-  const [joinedRoom, setJoinedRoom] = useState(false);
   console.log(allUsers);
   console.log(sharedScreenID);
 
