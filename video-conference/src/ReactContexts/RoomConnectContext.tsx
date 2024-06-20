@@ -81,16 +81,16 @@ export const RoomProvider: React.FunctionComponent<Props> = ({ children }) => {
     if (message.type === "getUsers") {
       getUsers({ participants: message.participants });
     }
-    if (message.type === "userJoined") {
-      console.log("This user Joined", message.userID);
-      if (user && stream) {
-        const call = user.call(message.userID, stream);
-        call.on("stream", (userStream) => {
-          dispatch(addUserAction(message.userID, userStream));
-        });
-        addConnection(message.userID, call);
-      }
-    }
+    // if (message.type === "userJoined") {
+    //   console.log("This user Joined", message.userID);
+    //   if (user && stream) {
+    //     const call = user.call(message.userID, stream);
+    //     call.on("stream", (userStream) => {
+    //       dispatch(addUserAction(message.userID, userStream));
+    //     });
+    //     addConnection(message.userID, call);
+    //   }
+    // }
     if (message.type === "userLeft") {
       removeUser(message.userID);
     }
@@ -209,11 +209,20 @@ export const RoomProvider: React.FunctionComponent<Props> = ({ children }) => {
     if (!user) return;
     if (!stream) return;
 
-    // ws.onmessage = (event) => {
-    //   const message = JSON.parse(event.data.toString());
-
-    //   handleMessage(message);
-    // };
+    ws.onmessage = (event) => {
+      const message = JSON.parse(event.data.toString());
+      if (message.type === "userJoined") {
+        console.log("This user Joined", message.userID);
+        if (user && stream) {
+          const call = user.call(message.userID, stream);
+          call.on("stream", (userStream) => {
+            dispatch(addUserAction(message.userID, userStream));
+          });
+          addConnection(message.userID, call);
+        }
+      }
+      // handleMessage(message);
+    };
 
     user.on("call", (call) => {
       call.answer(stream);
