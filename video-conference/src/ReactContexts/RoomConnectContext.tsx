@@ -9,8 +9,10 @@ import {
 import { useNavigate } from "react-router-dom";
 import { v4 as uuidV4 } from "uuid";
 import { userReducer } from "../Reducers/userReducer";
-import { addUserAction, removeUserAction } from "./userActions";
-import { MessageType } from "../tyeps/chat";
+import { addUserAction, removeUserAction } from "../Reducers/userActions";
+import { chatReducer, ChatState } from "../Reducers/chatReducer";
+import { MessageType } from "../types/chat";
+import { addHistoryAction, addMessageAction } from "../Reducers/chatActions";
 
 const WS_Url = "ws://localhost:8080";
 
@@ -25,6 +27,9 @@ interface Props {
 export const RoomProvider: React.FunctionComponent<Props> = ({ children }) => {
   const [user, setUser] = useState<Peer>();
   const [stream, setStream] = useState<MediaStream>();
+  const [chat, chatDispatch] = useReducer(chatReducer, {
+    messages: [],
+  });
   const [allUsers, dispatch] = useReducer(userReducer, {});
   const [sharedScreenID, setSharedScreenID] = useState<String>();
   const [connections, setConnections] = useState<Map<string, MediaConnection>>(
@@ -39,7 +44,7 @@ export const RoomProvider: React.FunctionComponent<Props> = ({ children }) => {
   };
 
   const getUsers = ({ participants }: { participants: string[] }) => {
-    console.log(participants);
+    console.log(participants, " GETTING USERS");
   };
 
   const removeUser = (userId: string) => {
@@ -58,6 +63,17 @@ export const RoomProvider: React.FunctionComponent<Props> = ({ children }) => {
       return newConnections;
     });
   };
+
+  const chatMessage = (message: MessageType) => {
+    console.log(message, " NEW MESSAGE RECIEVED");
+    chatDispatch(addMessageAction(message));
+  };
+
+  const addChatHistory = (message: MessageType[]) => {
+    console.log(message, " ADDED TO HISTORY");
+    chatDispatch(addHistoryAction(message));
+  };
+
   const handleMessage = (message: any) => {
     if (message.type === "createRoomSuccess") {
       enterRoom({ roomId: message.roomID });
@@ -85,7 +101,11 @@ export const RoomProvider: React.FunctionComponent<Props> = ({ children }) => {
       setSharedScreenID("");
     }
     if (message.type === "chat-message") {
+      chatMessage(message.messageContent);
       console.log(message.messageContent);
+    }
+    if (message.type === "getMessages") {
+      addChatHistory(message.chats);
     }
   };
   //Sharing The Screen
@@ -123,7 +143,8 @@ export const RoomProvider: React.FunctionComponent<Props> = ({ children }) => {
       author: user?.id || "",
       timestamp: new Date().getTime(),
     };
-    console.log(message);
+    console.log(messageData);
+    chatDispatch(addMessageAction(messageData));
     ws.send(
       JSON.stringify({
         type: "sendMessage",
@@ -188,11 +209,12 @@ export const RoomProvider: React.FunctionComponent<Props> = ({ children }) => {
     if (!user) return;
     if (!stream) return;
 
-    ws.onmessage = (event) => {
-      const message = JSON.parse(event.data.toString());
+    // ws.onmessage = (event) => {
+    //   const message = JSON.parse(event.data.toString());
 
-      handleMessage(message);
-    };
+    //   handleMessage(message);
+    // };
+
     user.on("call", (call) => {
       call.answer(stream);
       call.on("stream", (userStream) => {
@@ -201,7 +223,7 @@ export const RoomProvider: React.FunctionComponent<Props> = ({ children }) => {
       addConnection(call.peer, call);
     });
   }, [user, stream]);
-
+  console.log(chat, " FROM CONTEXT!");
   return (
     <RoomContext.Provider
       value={{
@@ -213,6 +235,7 @@ export const RoomProvider: React.FunctionComponent<Props> = ({ children }) => {
         sharedScreenID,
         setRoomId,
         sendMessage,
+        chat,
       }}
     >
       {children}

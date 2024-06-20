@@ -1,25 +1,16 @@
 import { ChatBubble } from "./ChatBubble";
 import { ChatInput } from "./ChatInput";
-import { MessageType } from "../../tyeps/chat";
+import { MessageType } from "../../types/chat";
+import { useContext } from "react";
+import { RoomContext } from "../../ReactContexts/RoomConnectContext";
 
 export const Chat: React.FC = ({}) => {
-  const messages: MessageType[] = [
-    {
-      content: "Message1",
-      author: "",
-      timestamp: 0,
-    },
-    {
-      content: "Message2",
-      author: "",
-      timestamp: 0,
-    },
-  ];
-
+  const { chat } = useContext(RoomContext);
+  console.log(chat, " FROM CHAT.TSX");
   return (
     <div className="flex flex-col h-full justify-between">
       <div>
-        {messages.map((message) => (
+        {chat.messages.map((message: MessageType) => (
           <ChatBubble message={message} />
         ))}
       </div>
