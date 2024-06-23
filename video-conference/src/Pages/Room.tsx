@@ -10,8 +10,17 @@ import { Chat } from "../components/Chat/Chat";
 
 const RoomDisplay: React.FC = () => {
   const { id } = useParams();
-  const { ws, user, stream, allUsers, screenShare, sharedScreenID, setRoomId } =
-    useContext(RoomContext);
+  const {
+    ws,
+    user,
+    stream,
+    allUsers,
+    screenShare,
+    sharedScreenID,
+    setRoomId,
+    toggleChat,
+    chat,
+  } = useContext(RoomContext);
   console.log(allUsers);
   console.log(sharedScreenID);
 
@@ -51,13 +60,15 @@ const RoomDisplay: React.FC = () => {
               <VideoCall stream={peer.stream} />
             ))}
           </div>
-          <div className="border-l-2 pb-28">
-            <Chat />
-          </div>
+          {chat.isChatOpen && (
+            <div className="border-l-2 pb-28">
+              <Chat />
+            </div>
+          )}
         </div>
         <div className="fixed bottom-0 p-6 w-full flex justify-center border-t-2">
           <ScreenShareButton onClick={screenShare} />
-          <ChatButton onClick={screenShare} />
+          <ChatButton onClick={toggleChat} />
         </div>
       </div>
     </>

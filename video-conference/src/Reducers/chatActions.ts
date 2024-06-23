@@ -13,3 +13,9 @@ export const addHistoryAction = (history: MessageType[]) => ({
     type: ADD_HISTORY,
     payload: { history },
 });
+
+
+export const toggleChatAction = (isChatOpen : boolean)=> ({
+    type : TOGGLE_CHAT,
+    payload : {isChatOpen}
+});

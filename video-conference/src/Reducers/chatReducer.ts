@@ -1,8 +1,9 @@
 import { MessageType } from "../types/chat";
-import { ADD_MESSAGE, ADD_HISTORY } from "./chatActions";
+import { ADD_MESSAGE, ADD_HISTORY, TOGGLE_CHAT } from "./chatActions";
 
 export type ChatState = {
     messages: MessageType[];
+    isChatOpen : boolean;
 };
 type ChatAction =
     | {
@@ -12,6 +13,11 @@ type ChatAction =
     | {
         type: typeof ADD_HISTORY;
         payload: { history: MessageType[] };
+    }
+    |
+    {
+        type: typeof TOGGLE_CHAT;
+        payload: { isChatOpen: boolean };
     }
 
 export const chatReducer = (state: ChatState, action: ChatAction) => {
@@ -26,6 +32,11 @@ export const chatReducer = (state: ChatState, action: ChatAction) => {
                 ...state,
                 messages: action.payload.history,
             };
+        case TOGGLE_CHAT:
+            return {
+                ...state,
+                isChatOpen : action.payload.isChatOpen,
+            }
         default:
             return { ...state };
     }

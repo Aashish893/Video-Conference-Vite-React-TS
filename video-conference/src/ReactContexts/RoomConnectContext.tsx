@@ -10,9 +10,13 @@ import { useNavigate } from "react-router-dom";
 import { v4 as uuidV4 } from "uuid";
 import { userReducer } from "../Reducers/userReducer";
 import { addUserAction, removeUserAction } from "../Reducers/userActions";
-import { chatReducer, ChatState } from "../Reducers/chatReducer";
+import { chatReducer } from "../Reducers/chatReducer";
 import { MessageType } from "../types/chat";
-import { addHistoryAction, addMessageAction } from "../Reducers/chatActions";
+import {
+  addHistoryAction,
+  addMessageAction,
+  toggleChatAction,
+} from "../Reducers/chatActions";
 
 const WS_Url = "ws://localhost:8080";
 
@@ -29,6 +33,7 @@ export const RoomProvider: React.FunctionComponent<Props> = ({ children }) => {
   const [stream, setStream] = useState<MediaStream>();
   const [chat, chatDispatch] = useReducer(chatReducer, {
     messages: [],
+    isChatOpen: false,
   });
   const [allUsers, dispatch] = useReducer(userReducer, {});
   const [sharedScreenID, setSharedScreenID] = useState<String>();
@@ -72,6 +77,10 @@ export const RoomProvider: React.FunctionComponent<Props> = ({ children }) => {
   const addChatHistory = (message: MessageType[]) => {
     console.log(message, " ADDED TO HISTORY");
     chatDispatch(addHistoryAction(message));
+  };
+
+  const toggleChat = () => {
+    chatDispatch(toggleChatAction(!chat.isChatOpen));
   };
 
   const handleMessage = (message: any) => {
@@ -245,6 +254,7 @@ export const RoomProvider: React.FunctionComponent<Props> = ({ children }) => {
         setRoomId,
         sendMessage,
         chat,
+        toggleChat,
       }}
     >
       {children}
