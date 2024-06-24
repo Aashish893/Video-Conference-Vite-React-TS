@@ -197,6 +197,51 @@ export const RoomProvider: React.FunctionComponent<Props> = ({ children }) => {
   //   };
   // }, []);
 
+  // useEffect(() => {
+  //   let userId = localStorage.getItem("userId");
+  //   if (!userId) {
+  //     userId = uuidV4();
+  //     localStorage.setItem("userId", userId);
+  //   }
+
+  //   const newUser = new Peer(userId, {
+  //     host: "localhost",
+  //     port: 9001,
+  //     path: "/",
+  //   });
+
+  //   newUser.on("open", (id) => {
+  //     console.log(`Peer connection established. Your peer ID is: ${id}`);
+  //     setUser(newUser);
+  //   });
+
+  //   newUser.on("error", (err) => {
+  //     console.error(`Peer connection error: ${err.type} - ${err.message}`);
+  //   });
+
+  //   try {
+  //     navigator.mediaDevices
+  //       .getUserMedia({ video: true, audio: true })
+  //       .then((stream) => {
+  //         setStream(stream);
+  //       });
+  //   } catch (error) {
+  //     console.error(error);
+  //   }
+
+  //   const handleWebSocketMessage = (event: any) => {
+  //     const message = JSON.parse(event.data.toString());
+  //     handleMessage(message);
+  //   };
+
+  //   ws.addEventListener("message", handleWebSocketMessage);
+
+  //   return () => {
+  //     ws.removeEventListener("message", handleWebSocketMessage);
+  //     newUser.destroy();
+  //   };
+  // }, []);
+
   useEffect(() => {
     let userId = localStorage.getItem("userId");
     if (!userId) {
@@ -241,6 +286,7 @@ export const RoomProvider: React.FunctionComponent<Props> = ({ children }) => {
       newUser.destroy();
     };
   }, []);
+
   useEffect(() => {
     if (sharedScreenID) {
       console.log("Sending shared ID");
