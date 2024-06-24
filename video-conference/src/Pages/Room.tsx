@@ -23,6 +23,7 @@ const RoomDisplay: React.FC = () => {
     userName,
   } = useContext(RoomContext);
   console.log(user);
+  console.log(sharedScreenID);
 
   useEffect(() => {
     if (user) {
