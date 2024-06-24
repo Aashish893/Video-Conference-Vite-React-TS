@@ -8,34 +8,32 @@ var connectionMap = {};
 var roomHandler = function (ws) {
     var createRoom = function () {
         var generatedRoomId = (0, uuid_1.v4)();
-        Rooms[generatedRoomId] = [];
+        Rooms[generatedRoomId] = {};
         connectionMap[generatedRoomId] = [];
         ws.send(JSON.stringify({ type: 'createRoomSuccess', roomID: generatedRoomId }));
     };
     var joinRoom = function (_a) {
-        var roomId = _a.roomId, userId = _a.userId;
+        var roomId = _a.roomId, userId = _a.userId, userName = _a.userName;
         if (!Rooms[roomId])
-            Rooms[roomId] = [];
+            Rooms[roomId] = {};
         if (!Chats[roomId])
             Chats[roomId] = [];
-        console.log(Chats);
-        if (!Rooms[roomId].includes(userId)) {
-            Rooms[roomId].push(userId);
-            connectionMap[roomId].push({ ws: ws, userId: userId });
-            // Broadcast to all ws.send(JSON.stringify({ type: 'userJoined', roomID : roomId, userID : userId })); 
-            broadcast(roomId, { type: 'userJoined', roomID: roomId, userID: userId }, userId);
-            ws.send(JSON.stringify({ type: 'getUsers', roomID: roomId, participants: Rooms[roomId] }));
-            ws.send(JSON.stringify({ type: 'getMessages', chats: Chats[roomId], roomID: roomId, participants: Rooms[roomId] }));
-            //send to particular user ID
-            // sendToSpecificUser(roomId, userId, { type: 'getMessages', chats : Chats[roomId]});
-        }
+        Rooms[roomId][userId] = { userId: userId, userName: userName };
+        connectionMap[roomId].push({ ws: ws, userId: userId });
+        // Broadcast to all ws.send(JSON.stringify({ type: 'userJoined', roomID : roomId, userID : userId })); 
+        console.log('User Joined', roomId, userId, userName);
+        broadcast(roomId, { type: 'userJoined', roomID: roomId, userID: userId, UN: userName }, userId);
+        ws.send(JSON.stringify({ type: 'getUsers', roomID: roomId, participants: Rooms[roomId] }));
+        ws.send(JSON.stringify({ type: 'getMessages', chats: Chats[roomId], roomID: roomId, participants: Rooms[roomId] }));
+        //send to particular user ID
+        // sendToSpecificUser(roomId, userId, { type: 'getMessages', chats : Chats[roomId]});      
         ws.on('close', function () {
             leftRoom({ roomId: roomId, userId: userId });
         });
     };
     var leftRoom = function (_a) {
         var roomId = _a.roomId, userId = _a.userId;
-        Rooms[roomId] = Rooms[roomId].filter(function (id) { return id !== userId; });
+        // Rooms[roomId] = Rooms[roomId].filter(id => id !== userId);
         broadcast(roomId, { type: 'userLeft', roomID: roomId, userID: userId }, userId);
     };
     var startSharing = function (_a) {
@@ -60,8 +58,6 @@ var roomHandler = function (ws) {
             connectionMap[roomId].forEach(function (client) {
                 if (client.userId !== userId) {
                     client.ws.send(JSON.stringify(message));
-                    console.log("MESSSAAGGEEE SENTTTTTTTT");
-                    console.log(message);
                 }
             });
         }
@@ -74,11 +70,12 @@ var roomHandler = function (ws) {
     };
     ws.on('message', function (message) {
         var messageData = JSON.parse(message);
+        console.log(messageData);
         if (messageData.type === 'createRoom') {
             createRoom();
         }
         else if (messageData.type === 'joinRoom') {
-            joinRoom({ roomId: messageData.roomID, userId: messageData.userID });
+            joinRoom({ roomId: messageData.roomID, userId: messageData.userID, userName: messageData.UN });
         }
         else if (messageData.type === 'startSharing') {
             startSharing({ roomId: messageData.roomID, userId: messageData.userID });

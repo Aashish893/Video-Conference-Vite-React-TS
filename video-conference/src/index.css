@@ -74,6 +74,6 @@ button:focus-visible {
 }
 
 redBorder{
-  border: #1a1a1a;
+  border: #ff0000;
   width: 10px;
 }

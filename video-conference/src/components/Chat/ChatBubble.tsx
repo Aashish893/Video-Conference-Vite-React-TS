@@ -4,7 +4,7 @@ import { RoomContext } from "../../ReactContexts/RoomConnectContext";
 import classNames from "classnames";
 export const ChatBubble: React.FC<{ message: MessageType }> = ({ message }) => {
   const { user } = useContext(RoomContext);
-  const isSelf = message.author === user?.id;
+  const isSelf = message.author === user?.id || user?._lastServerId;
 
   if (!message || !message.author) {
     return null; // or return some fallback UI

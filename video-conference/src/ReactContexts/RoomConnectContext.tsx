@@ -30,6 +30,9 @@ interface Props {
 
 export const RoomProvider: React.FunctionComponent<Props> = ({ children }) => {
   const [user, setUser] = useState<Peer>();
+  const [userName, setUserName] = useState(
+    localStorage.getItem("userName") || ""
+  );
   const [stream, setStream] = useState<MediaStream>();
   const [chat, chatDispatch] = useReducer(chatReducer, {
     messages: [],
@@ -147,9 +150,10 @@ export const RoomProvider: React.FunctionComponent<Props> = ({ children }) => {
 
   //Chat
   const sendMessage = (message: string) => {
+    console.log(user?._lastServerId);
     const messageData: MessageType = {
       content: message,
-      author: user?.id || "",
+      author: user?.id || user?._lastServerId || "",
       timestamp: new Date().getTime(),
     };
     console.log(messageData);
@@ -164,7 +168,20 @@ export const RoomProvider: React.FunctionComponent<Props> = ({ children }) => {
   };
 
   useEffect(() => {
-    const userId = uuidV4();
+    localStorage.setItem("userName", userName);
+  }, [userName]);
+
+  useEffect(() => {
+    const id = localStorage.getItem("userId");
+    console.log("Local ID ", id);
+    const userId = id || uuidV4();
+    console.log(userId);
+
+    if (!id) {
+      localStorage.setItem("userId", userId);
+    }
+
+    console.log(userId);
     const newUser = new Peer(userId, {
       host: "localhost",
       port: 9001,
@@ -255,6 +272,8 @@ export const RoomProvider: React.FunctionComponent<Props> = ({ children }) => {
         sendMessage,
         chat,
         toggleChat,
+        userName,
+        setUserName,
       }}
     >
       {children}

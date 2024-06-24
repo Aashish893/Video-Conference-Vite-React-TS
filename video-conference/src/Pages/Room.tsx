@@ -20,15 +20,20 @@ const RoomDisplay: React.FC = () => {
     setRoomId,
     toggleChat,
     chat,
+    userName,
   } = useContext(RoomContext);
-  console.log(allUsers);
-  console.log(sharedScreenID);
+  console.log(user);
 
   useEffect(() => {
     if (user) {
       setTimeout(() => {
         ws.send(
-          JSON.stringify({ type: "joinRoom", roomID: id, userID: user._id })
+          JSON.stringify({
+            type: "joinRoom",
+            roomID: id,
+            userID: user._id || user._lastServerId,
+            UN: userName,
+          })
         );
       }, 1000);
     }
