@@ -6,14 +6,22 @@ interface RoomProps {
     userId : string; 
 }
 
+interface UserProps extends RoomProps{
+    userName : string;
+}
+
 interface MessageType {
     content : string;
     author : string;
     timestamp : number;
 }
 
+interface User{
+    userId : string;
+    userName : string,
+}
 
-const Rooms : Record<string, string []> = {}
+const Rooms : Record<string, Record<string, User>> = {}
 const Chats : Record<string, MessageType []> = {}
 
 interface WebSocketMap {
@@ -26,34 +34,32 @@ const connectionMap : WebSocketMap = {};
 export const roomHandler = (ws:WebSocket) => {
     const createRoom = () =>{
         const generatedRoomId = uuidv4();
-        Rooms[generatedRoomId] = [];
+        Rooms[generatedRoomId] = {};
         connectionMap[generatedRoomId] = [];
         ws.send(JSON.stringify({ type: 'createRoomSuccess', roomID : generatedRoomId }));
     };
 
-    const joinRoom = ({roomId, userId} :RoomProps) => {
-        if(!Rooms[roomId]) Rooms[roomId] = [];
+    const joinRoom = ({roomId, userId, userName} :UserProps) => {
+        if(!Rooms[roomId]) Rooms[roomId] = {};
         if(!Chats[roomId]) Chats[roomId] = [];
-        console.log(Chats);
-        if (!Rooms[roomId].includes(userId)){
-            Rooms[roomId].push(userId);
-            connectionMap[roomId].push({ws, userId});
-            // Broadcast to all ws.send(JSON.stringify({ type: 'userJoined', roomID : roomId, userID : userId })); 
-            
-            broadcast(roomId,{type : 'userJoined', roomID : roomId, userID : userId}, userId);
-            ws.send(JSON.stringify({ type: 'getUsers', roomID : roomId , participants :Rooms[roomId] }));
-            ws.send(JSON.stringify({ type: 'getMessages', chats : Chats[roomId], roomID : roomId , participants :Rooms[roomId] }));
-            //send to particular user ID
-            // sendToSpecificUser(roomId, userId, { type: 'getMessages', chats : Chats[roomId]});
-        }               
-    
+        Rooms[roomId][userId] = {userId, userName};
+        connectionMap[roomId].push({ws, userId});
+        // Broadcast to all ws.send(JSON.stringify({ type: 'userJoined', roomID : roomId, userID : userId })); 
+        
+        broadcast(roomId,{type : 'userJoined', roomID : roomId, userID : userId, UN : userName}, userId);
+        ws.send(JSON.stringify({ type: 'getUsers', roomID : roomId , participants :Rooms[roomId] }));
+        ws.send(JSON.stringify({ type: 'getMessages', chats : Chats[roomId], roomID : roomId , participants :Rooms[roomId] }));
+        //send to particular user ID
+        // sendToSpecificUser(roomId, userId, { type: 'getMessages', chats : Chats[roomId]});
+                
+        console.log(Rooms)
         ws.on('close', () =>{
             leftRoom({roomId, userId});
         })
     };
 
     const leftRoom = ({roomId, userId} : RoomProps) => {
-        Rooms[roomId] = Rooms[roomId].filter(id => id !== userId);
+        // Rooms[roomId] = Rooms[roomId].filter(id => id !== userId);
         broadcast(roomId, {type:'userLeft',roomID : roomId ,userID : userId}, userId)
     }
 
@@ -80,8 +86,6 @@ export const roomHandler = (ws:WebSocket) => {
                 if(client.userId !== userId)
                     {
                         client.ws.send(JSON.stringify(message));
-                        console.log("MESSSAAGGEEE SENTTTTTTTT")
-                        console.log(message);
                 }
             })        
         }
@@ -99,7 +103,7 @@ export const roomHandler = (ws:WebSocket) => {
             createRoom();
         }
         else if (messageData.type === 'joinRoom'){
-            joinRoom({roomId : messageData.roomID , userId : messageData.userID});
+            joinRoom({roomId : messageData.roomID , userId : messageData.userID, userName : messageData.UN});
         }
 
         else if (messageData.type === 'startSharing'){

@@ -9,7 +9,11 @@ import {
 import { useNavigate } from "react-router-dom";
 import { v4 as uuidV4 } from "uuid";
 import { userReducer } from "../Reducers/userReducer";
-import { addUserAction, removeUserAction } from "../Reducers/userActions";
+import {
+  addUserAction,
+  removeUserAction,
+  addUserNameAction,
+} from "../Reducers/userActions";
 import { chatReducer } from "../Reducers/chatReducer";
 import { MessageType } from "../types/chat";
 import {
@@ -30,6 +34,9 @@ interface Props {
 
 export const RoomProvider: React.FunctionComponent<Props> = ({ children }) => {
   const [user, setUser] = useState<Peer>();
+  const [userName, setUserName] = useState(
+    localStorage.getItem("userName") || ""
+  );
   const [stream, setStream] = useState<MediaStream>();
   const [chat, chatDispatch] = useReducer(chatReducer, {
     messages: [],
@@ -243,6 +250,9 @@ export const RoomProvider: React.FunctionComponent<Props> = ({ children }) => {
   // }, []);
 
   useEffect(() => {
+    localStorage.setItem("userName", userName);
+  }, [userName]);
+  useEffect(() => {
     let userId = localStorage.getItem("userId");
     if (!userId) {
       userId = uuidV4();
@@ -312,8 +322,13 @@ export const RoomProvider: React.FunctionComponent<Props> = ({ children }) => {
       const message = JSON.parse(event.data.toString());
       if (message.type === "userJoined") {
         console.log("This user Joined", message.userID);
+        dispatch(addUserNameAction(message.userID, message.UN));
         if (user && stream) {
-          const call = user.call(message.userID, stream);
+          const call = user.call(message.userID, stream, {
+            metadata: {
+              userName,
+            },
+          });
           call.on("stream", (userStream) => {
             dispatch(addUserAction(message.userID, userStream));
           });
@@ -324,14 +339,18 @@ export const RoomProvider: React.FunctionComponent<Props> = ({ children }) => {
     };
 
     user.on("call", (call) => {
+      const { userName } = call.metadata.userName;
+      dispatch(addUserNameAction(call.peer, userName));
       call.answer(stream);
       call.on("stream", (userStream) => {
         dispatch(addUserAction(call.peer, userStream));
       });
       addConnection(call.peer, call);
     });
-  }, [user, stream]);
-  console.log(chat, " FROM CONTEXT!");
+  }, [user, stream, userName]);
+
+  console.log({ allUsers });
+
   return (
     <RoomContext.Provider
       value={{
@@ -345,6 +364,8 @@ export const RoomProvider: React.FunctionComponent<Props> = ({ children }) => {
         sendMessage,
         chat,
         toggleChat,
+        userName,
+        setUserName,
       }}
     >
       {children}
