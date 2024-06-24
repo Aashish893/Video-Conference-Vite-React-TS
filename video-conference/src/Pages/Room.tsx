@@ -21,7 +21,7 @@ const RoomDisplay: React.FC = () => {
     toggleChat,
     chat,
   } = useContext(RoomContext);
-  console.log(allUsers);
+  console.log(user);
   console.log(sharedScreenID);
 
   useEffect(() => {
