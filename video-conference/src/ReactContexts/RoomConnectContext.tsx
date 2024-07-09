@@ -321,8 +321,7 @@ export const RoomProvider: React.FunctionComponent<Props> = ({ children }) => {
     ws.onmessage = (event) => {
       const message = JSON.parse(event.data.toString());
       if (message.type === "userJoined") {
-        console.log("This user Joined", message.userID);
-        dispatch(addUserNameAction(message.userID, message.UN));
+        console.log(message, " MESSAGE ON USER JOINED!!");
         if (user && stream) {
           const call = user.call(message.userID, stream, {
             metadata: {
@@ -332,6 +331,7 @@ export const RoomProvider: React.FunctionComponent<Props> = ({ children }) => {
           call.on("stream", (userStream) => {
             dispatch(addUserAction(message.userID, userStream));
           });
+          dispatch(addUserNameAction(message.userID, message.UN));
           addConnection(message.userID, call);
         }
       }
@@ -346,10 +346,11 @@ export const RoomProvider: React.FunctionComponent<Props> = ({ children }) => {
         dispatch(addUserAction(call.peer, userStream));
       });
       addConnection(call.peer, call);
+      dispatch(addUserNameAction(call.peer, call.metadata.userName));
     });
   }, [user, stream, userName]);
 
-  console.log({ allUsers });
+  console.log(allUsers);
 
   return (
     <RoomContext.Provider

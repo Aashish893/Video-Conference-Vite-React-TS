@@ -7,6 +7,7 @@ import { UserState } from "../Reducers/userReducer";
 import { ScreenShareButton } from "../components/ScreenShareButton";
 import { ChatButton } from "../components/ChatButton";
 import { Chat } from "../components/Chat/Chat";
+import { NameInput } from "../UserData/userNames";
 
 const RoomDisplay: React.FC = () => {
   const { id } = useParams();
@@ -22,8 +23,6 @@ const RoomDisplay: React.FC = () => {
     chat,
     userName,
   } = useContext(RoomContext);
-  console.log(user);
-  console.log(userName);
 
   useEffect(() => {
     if (user) {
@@ -61,9 +60,17 @@ const RoomDisplay: React.FC = () => {
           <div
             className={`grid grid-cols-4 gap-4 ${screenSharedVideo ? "w-1/5 grid-cols-1" : "grid-cols-4"}`}
           >
-            {sharedScreenID !== user?.id && <VideoCall stream={stream} />}
+            {sharedScreenID !== user?.id && (
+              <div>
+                <VideoCall stream={stream} />
+                <NameInput />
+              </div>
+            )}
             {Object.values(usersToShow as UserState).map((peer) => (
-              <VideoCall stream={peer.stream} />
+              <div>
+                <VideoCall stream={peer.stream} />
+                <div>{peer.userName}</div>
+              </div>
             ))}
           </div>
           {chat.isChatOpen && (

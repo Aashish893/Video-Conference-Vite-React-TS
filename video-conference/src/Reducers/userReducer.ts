@@ -1,6 +1,6 @@
 import { ADD_USER, REMOVE_USER, ADD_USER_NAME } from "./userActions";
 
-export type UserState = Record<string,{stream? : MediaStream, userName? : string}>
+export type UserState = Record<string,{stream? : MediaStream, userName? : string}>;
 
 export type UserActions = 
 |
@@ -17,16 +17,18 @@ export type UserActions =
 };
 
 export const userReducer = (state : UserState, action : UserActions) => {
+    console.log("Reducer action:", action);
     switch(action.type){
         case ADD_USER:
             return{
                 ...state, [action.payload.userId] : {...state[action.payload.userId], stream : action.payload.stream}
             }
         case REMOVE_USER:
-            const {[action.payload.userId] : deleted , ...rest} = state
-            return rest
+            return{...state, [action.payload.userId] : {...state[action.payload.userId], stream : undefined}}
+            // const {[action.payload.userId] : deleted , ...rest} = state
+            // return rest
         case ADD_USER_NAME:
-            return{...state,[action.payload.userId] : {...state[action.payload.userId],userName : action.payload.userName}}
+            return{...state,[action.payload.userId] : {...state[action.payload.userName],userName : action.payload.userName}}
         default:
             return {...state}
     }

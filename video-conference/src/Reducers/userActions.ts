@@ -1,5 +1,5 @@
-export const ADD_USER = "ADD_PEER" as const;
-export const REMOVE_USER = "REMOVE_PEER" as const;
+export const ADD_USER = "ADD_USER" as const;
+export const REMOVE_USER = "REMOVE_USER" as const;
 export const ADD_USER_NAME = "ADD_USER_NAME" as const;
 
 
