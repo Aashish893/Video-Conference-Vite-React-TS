@@ -11,8 +11,9 @@ import { v4 as uuidV4 } from "uuid";
 import { userReducer } from "../Reducers/userReducer";
 import {
   addUserAction,
-  removeUserAction,
+  removeUserStreamAction,
   addUserNameAction,
+  addAllUsersAction,
 } from "../Reducers/userActions";
 import { chatReducer } from "../Reducers/chatReducer";
 import { MessageType } from "../types/chat";
@@ -55,12 +56,17 @@ export const RoomProvider: React.FunctionComponent<Props> = ({ children }) => {
     navigate(`/room/${roomId}`);
   };
 
-  const getUsers = ({ participants }: { participants: string[] }) => {
+  const getUsers = ({
+    participants,
+  }: {
+    participants: Record<string, { userName: string }>;
+  }) => {
     console.log(participants, " GETTING USERS");
+    dispatch(addAllUsersAction(participants));
   };
 
   const removeUser = (userId: string) => {
-    dispatch(removeUserAction(userId));
+    dispatch(removeUserStreamAction(userId));
     removeConnection(userId);
   };
 

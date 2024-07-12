@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { RoomContext } from "../ReactContexts/RoomConnectContext";
 import { VideoCall } from "../components/VideoCall";
@@ -38,6 +38,7 @@ const RoomDisplay: React.FC = () => {
       }, 1000);
     }
   }, [id, user, ws]);
+  console.log(stream);
 
   useEffect(() => {
     setRoomId(id);
@@ -60,18 +61,20 @@ const RoomDisplay: React.FC = () => {
           <div
             className={`grid grid-cols-4 gap-4 ${screenSharedVideo ? "w-1/5 grid-cols-1" : "grid-cols-4"}`}
           >
-            {sharedScreenID !== user?.id && (
+            {sharedScreenID !== user?.id && stream && (
               <div>
                 <VideoCall stream={stream} />
                 <NameInput />
               </div>
             )}
-            {Object.values(usersToShow as UserState).map((peer) => (
-              <div>
-                <VideoCall stream={peer.stream} />
-                <div>{peer.userName}</div>
-              </div>
-            ))}
+            {Object.values(usersToShow as UserState)
+              .filter((peer) => !!peer.stream)
+              .map((peer) => (
+                <div>
+                  <VideoCall stream={peer.stream} />
+                  <div>{peer.userName}</div>
+                </div>
+              ))}
           </div>
           {chat.isChatOpen && (
             <div className="border-l-2 pb-28">

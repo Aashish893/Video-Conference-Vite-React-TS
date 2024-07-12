@@ -43,7 +43,15 @@ export const roomHandler = (ws:WebSocket) => {
         if(!Rooms[roomId]) Rooms[roomId] = {};
         if(!Chats[roomId]) Chats[roomId] = [];
         Rooms[roomId][userId] = {userId, userName};
-        connectionMap[roomId].push({ws, userId});
+
+        // Check if the user is already in the connectionMap
+        const userAlreadyInRoom = connectionMap[roomId].some(client => client.userId === userId);
+
+        if (!userAlreadyInRoom) {
+            connectionMap[roomId].push({ ws, userId });
+        }
+
+        // connectionMap[roomId].push({ws, userId});
         // Broadcast to all ws.send(JSON.stringify({ type: 'userJoined', roomID : roomId, userID : userId })); 
         
         broadcast(roomId,{type : 'userJoined', roomID : roomId, userID : userId, UN : userName}, userId);
@@ -60,7 +68,21 @@ export const roomHandler = (ws:WebSocket) => {
 
     const leftRoom = ({roomId, userId} : RoomProps) => {
         // Rooms[roomId] = Rooms[roomId].filter(id => id !== userId);
-        broadcast(roomId, {type:'userLeft',roomID : roomId ,userID : userId}, userId)
+        if (Rooms[roomId]) {
+            delete Rooms[roomId][userId];
+        }
+
+        // Remove user from connectionMap
+        if (connectionMap[roomId]) {
+            connectionMap[roomId] = connectionMap[roomId].filter(client => client.userId !== userId);
+        }
+
+        // Broadcast userLeft event
+        broadcast(roomId, { type: 'userLeft', roomID: roomId, userID: userId }, userId);
+
+        // Update remaining users
+        broadcast(roomId, { type: 'getUsers', roomID: roomId, participants: Rooms[roomId] }, userId);
+        
     }
 
     const startSharing = ({roomId,userId}: RoomProps) =>{
@@ -83,8 +105,11 @@ export const roomHandler = (ws:WebSocket) => {
     const broadcast = (roomId : string, message : any, userId : string) => {
         if(connectionMap[roomId]){
             connectionMap[roomId].forEach(client => {
+                
                 if(client.userId !== userId)
                     {
+                        console.log(message,"THIS IS USER ID", userId, "THIS IS CLIENT IT", client.userId);
+                        console.log("this is connection Map!!", connectionMap);
                         client.ws.send(JSON.stringify(message));
                 }
             })        
