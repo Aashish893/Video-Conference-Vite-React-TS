@@ -37,7 +37,7 @@ const RoomDisplay: React.FC = () => {
         );
       }, 1000);
     }
-  }, [id, user, ws]);
+  }, [id, user, ws, stream]);
   console.log(stream);
 
   useEffect(() => {

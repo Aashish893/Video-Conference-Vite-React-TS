@@ -6,7 +6,6 @@ import { RoomContext } from "../../ReactContexts/RoomConnectContext";
 
 export const Chat: React.FC = ({}) => {
   const { chat } = useContext(RoomContext);
-  console.log(chat, " FROM CHAT.TSX");
   return (
     <div className="flex flex-col h-full justify-between">
       <div>

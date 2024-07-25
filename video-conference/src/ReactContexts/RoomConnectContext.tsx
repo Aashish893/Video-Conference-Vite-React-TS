@@ -96,6 +96,17 @@ export const RoomProvider: React.FunctionComponent<Props> = ({ children }) => {
     chatDispatch(toggleChatAction(!chat.isChatOpen));
   };
 
+  const nameChangeHandler = ({
+    userId,
+    userName,
+  }: {
+    userId: string;
+    userName: string;
+  }) => {
+    console.log(userName);
+    dispatch(addUserNameAction(userId, userName));
+  };
+
   const handleMessage = (message: any) => {
     if (message.type === "createRoomSuccess") {
       enterRoom({ roomId: message.roomID });
@@ -128,6 +139,13 @@ export const RoomProvider: React.FunctionComponent<Props> = ({ children }) => {
     }
     if (message.type === "getMessages") {
       addChatHistory(message.chats);
+    }
+    if (message.type === "name-changed") {
+      console.log(message);
+      nameChangeHandler({
+        userId: message.messageContent.userId,
+        userName: message.messageContent.userName,
+      });
     }
   };
   //Sharing The Screen
@@ -258,6 +276,35 @@ export const RoomProvider: React.FunctionComponent<Props> = ({ children }) => {
   useEffect(() => {
     localStorage.setItem("userName", userName);
   }, [userName]);
+
+  useEffect(() => {
+    if (ws.readyState === WebSocket.OPEN) {
+      console.log(user?.id);
+      ws.send(
+        JSON.stringify({
+          type: "userChangedName",
+          userId: user?.id,
+          userName: userName,
+          roomId: roomId,
+        })
+      );
+    } else {
+      ws.addEventListener(
+        "open",
+        () => {
+          ws.send(
+            JSON.stringify({
+              type: "userChangedName",
+              userID: user?.id,
+              userName: userName,
+              roomId: roomId,
+            })
+          );
+        },
+        { once: true }
+      );
+    }
+  }, [userName, user, roomId]);
   useEffect(() => {
     let userId = localStorage.getItem("userId");
     if (!userId) {

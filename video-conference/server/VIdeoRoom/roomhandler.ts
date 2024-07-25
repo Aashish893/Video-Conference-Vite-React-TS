@@ -43,7 +43,7 @@ export const roomHandler = (ws:WebSocket) => {
         if(!Rooms[roomId]) Rooms[roomId] = {};
         if(!Chats[roomId]) Chats[roomId] = [];
         Rooms[roomId][userId] = {userId, userName};
-
+        console.log(Rooms, "AFTER USER JOINED");
         // Check if the user is already in the connectionMap
         const userAlreadyInRoom = connectionMap[roomId].some(client => client.userId === userId);
 
@@ -59,8 +59,6 @@ export const roomHandler = (ws:WebSocket) => {
         ws.send(JSON.stringify({ type: 'getMessages', chats : Chats[roomId], roomID : roomId , participants :Rooms[roomId] }));
         //send to particular user ID
         // sendToSpecificUser(roomId, userId, { type: 'getMessages', chats : Chats[roomId]});
-                
-        console.log(Rooms)
         ws.on('close', () =>{
             leftRoom({roomId, userId});
         })
@@ -68,9 +66,9 @@ export const roomHandler = (ws:WebSocket) => {
 
     const leftRoom = ({roomId, userId} : RoomProps) => {
         // Rooms[roomId] = Rooms[roomId].filter(id => id !== userId);
-        if (Rooms[roomId]) {
-            delete Rooms[roomId][userId];
-        }
+        // if (Rooms[roomId]) {
+        //     delete Rooms[roomId][userId];
+        // }
 
         // Remove user from connectionMap
         if (connectionMap[roomId]) {
@@ -108,8 +106,6 @@ export const roomHandler = (ws:WebSocket) => {
                 
                 if(client.userId !== userId)
                     {
-                        console.log(message,"THIS IS USER ID", userId, "THIS IS CLIENT IT", client.userId);
-                        console.log("this is connection Map!!", connectionMap);
                         client.ws.send(JSON.stringify(message));
                 }
             })        
@@ -120,6 +116,17 @@ export const roomHandler = (ws:WebSocket) => {
         const userConnection = connectionMap[roomId].find(client => client.userId === userId);
         if (userConnection){
             userConnection.ws.send(JSON.stringify(message))
+        }
+    }
+
+    const changeName = ({userId,userName, roomId} : {userId : string, userName : string, roomId : string}) => {
+        console.log(Rooms, userId, roomId, userName);
+        if (Rooms[roomId] && Rooms[roomId][userId]) {
+            console.log('Updating Name');
+            Rooms[roomId][userId].userName = userName;
+            broadcast(roomId, { type: "name-changed", messageContent: { userId, userName } }, userId);
+        } else {
+            console.error(`Cannot change name. User ${userId} not found in room ${roomId}.`);
         }
     }
     ws.on('message', (message : string) => {
@@ -139,6 +146,9 @@ export const roomHandler = (ws:WebSocket) => {
         }
         else if (messageData.type === 'sendMessage'){
             addMessage(messageData.roomID,messageData.message, messageData.message.author);
+        }
+        else if (messageData.type === 'userChangedName'){
+            changeName({userId : messageData.userId, userName : messageData.userName, roomId : messageData.roomId});
         }
     })
 }

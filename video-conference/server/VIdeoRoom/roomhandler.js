@@ -19,6 +19,7 @@ var roomHandler = function (ws) {
         if (!Chats[roomId])
             Chats[roomId] = [];
         Rooms[roomId][userId] = { userId: userId, userName: userName };
+        console.log(Rooms, "AFTER USER JOINED");
         // Check if the user is already in the connectionMap
         var userAlreadyInRoom = connectionMap[roomId].some(function (client) { return client.userId === userId; });
         if (!userAlreadyInRoom) {
@@ -31,17 +32,16 @@ var roomHandler = function (ws) {
         ws.send(JSON.stringify({ type: 'getMessages', chats: Chats[roomId], roomID: roomId, participants: Rooms[roomId] }));
         //send to particular user ID
         // sendToSpecificUser(roomId, userId, { type: 'getMessages', chats : Chats[roomId]});
-        console.log(Rooms);
         ws.on('close', function () {
             leftRoom({ roomId: roomId, userId: userId });
         });
     };
     var leftRoom = function (_a) {
-        var roomId = _a.roomId, userId = _a.userId;
         // Rooms[roomId] = Rooms[roomId].filter(id => id !== userId);
-        if (Rooms[roomId]) {
-            delete Rooms[roomId][userId];
-        }
+        // if (Rooms[roomId]) {
+        //     delete Rooms[roomId][userId];
+        // }
+        var roomId = _a.roomId, userId = _a.userId;
         // Remove user from connectionMap
         if (connectionMap[roomId]) {
             connectionMap[roomId] = connectionMap[roomId].filter(function (client) { return client.userId !== userId; });
@@ -72,8 +72,6 @@ var roomHandler = function (ws) {
         if (connectionMap[roomId]) {
             connectionMap[roomId].forEach(function (client) {
                 if (client.userId !== userId) {
-                    console.log(message, "THIS IS USER ID", userId, "THIS IS CLIENT IT", client.userId);
-                    console.log("this is connection Map!!", connectionMap);
                     client.ws.send(JSON.stringify(message));
                 }
             });
@@ -83,6 +81,18 @@ var roomHandler = function (ws) {
         var userConnection = connectionMap[roomId].find(function (client) { return client.userId === userId; });
         if (userConnection) {
             userConnection.ws.send(JSON.stringify(message));
+        }
+    };
+    var changeName = function (_a) {
+        var userId = _a.userId, userName = _a.userName, roomId = _a.roomId;
+        console.log(Rooms, userId, roomId, userName);
+        if (Rooms[roomId] && Rooms[roomId][userId]) {
+            console.log('Updating Name');
+            Rooms[roomId][userId].userName = userName;
+            broadcast(roomId, { type: "name-changed", messageContent: { userId: userId, userName: userName } }, userId);
+        }
+        else {
+            console.error("Cannot change name. User ".concat(userId, " not found in room ").concat(roomId, "."));
         }
     };
     ws.on('message', function (message) {
@@ -101,6 +111,9 @@ var roomHandler = function (ws) {
         }
         else if (messageData.type === 'sendMessage') {
             addMessage(messageData.roomID, messageData.message, messageData.message.author);
+        }
+        else if (messageData.type === 'userChangedName') {
+            changeName({ userId: messageData.userId, userName: messageData.userName, roomId: messageData.roomId });
         }
     });
 };

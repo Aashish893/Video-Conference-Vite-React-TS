@@ -28,11 +28,12 @@ export const userReducer = (state : UserState, action : UserActions) => {
                 ...state, [action.payload.userId] : {...state[action.payload.userId], stream : action.payload.stream}
             }
         case REMOVE_USER_STREAM:
-            return{...state, [action.payload.userId] : {...state[action.payload.userId], stream : undefined}}
+            // return{...state, [action.payload.userId] : {...state[action.payload.userId], stream : undefined}}
+            return {...state,[action.payload.userId]: {...state[action.payload.userId],stream: undefined,},};
             // const {[action.payload.userId] : deleted , ...rest} = state
             // return rest
         case ADD_USER_NAME:
-            return{...state,[action.payload.userId] : {...state[action.payload.userName],userName : action.payload.userName}}
+            return{...state,[action.payload.userId] : {...state[action.payload.userId],userName : action.payload.userName}}
         case ADD_ALL_USERS:
             // return {...state, ...action.payload.users}
             const updatedState = { ...state };
