@@ -1,9 +1,8 @@
-import { useContext } from "react";
-import { RoomContext } from "../ReactContexts/RoomConnectContext";
+import { ws } from "../ws";
 import { NameInput } from "../UserData/userNames";
+import { Buttons } from "./general/Buttons";
 
 export const Create: React.FC = () => {
-  const { ws } = useContext(RoomContext);
   const CreateRoom = () => {
     ws.send(JSON.stringify({ type: "createRoom" }));
   };
@@ -11,12 +10,9 @@ export const Create: React.FC = () => {
   return (
     <div>
       <NameInput />
-      <button
-        onClick={CreateRoom}
-        className="bg-transparent hover:bg-blue-500 text-blue-700 font-semibold hover:text-white py-2 px-4 border border-blue-500 hover:border-transparent rounded"
-      >
+      <Buttons onClick={CreateRoom} className="px-4 py-4 text-xl">
         Connect to Room
-      </button>
+      </Buttons>
     </div>
   );
 };

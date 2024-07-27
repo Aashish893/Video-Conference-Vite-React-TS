@@ -1,3 +1,5 @@
+import { IUser } from "../types/users";
+
 export const ADD_USER = "ADD_USER" as const;
 export const REMOVE_USER_STREAM = "REMOVE_USER_STREAM" as const;
 export const ADD_USER_NAME = "ADD_USER_NAME" as const;
@@ -19,7 +21,7 @@ export const addUserNameAction = (userId : string, userName : string) => ({
     payload : {userId, userName},
 });
 
-export const addAllUsersAction = (users:Record<string, {userName:string}>)=>({
+export const addAllUsersAction = (users:Record<string, IUser>)=>({
     type:ADD_ALL_USERS,
     payload:{users},
 })

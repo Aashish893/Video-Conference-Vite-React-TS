@@ -1,6 +1,7 @@
+import { IUser } from "../types/users";
 import { ADD_USER, REMOVE_USER_STREAM, ADD_USER_NAME, ADD_ALL_USERS } from "./userActions";
 
-export type UserState = Record<string,{stream? : MediaStream, userName? : string}>;
+export type UserState = Record<string,{stream? : MediaStream, userName? : string, userId?:string}>;
 
 export type UserActions = 
 |
@@ -17,7 +18,7 @@ export type UserActions =
 }
 |
 {
-    type:typeof ADD_ALL_USERS; payload : {users:Record<string, {userName:string}>}
+    type:typeof ADD_ALL_USERS; payload : {users:Record<string, IUser>}
 };
 
 export const userReducer = (state : UserState, action : UserActions) => {

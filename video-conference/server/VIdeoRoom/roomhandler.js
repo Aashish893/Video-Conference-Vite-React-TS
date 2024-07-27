@@ -66,6 +66,7 @@ var roomHandler = function (ws) {
             Chats[roomId] = [];
             Chats[roomId].push(message);
         }
+        console.log(Chats);
         broadcast(roomId, { type: "chat-message", messageContent: message }, userId);
     };
     var broadcast = function (roomId, message, userId) {

@@ -5,29 +5,47 @@ import {
   useEffect,
   useState,
   useReducer,
+  useContext,
 } from "react";
 import { useNavigate } from "react-router-dom";
-import { v4 as uuidV4 } from "uuid";
-import { userReducer } from "../Reducers/userReducer";
+import { userReducer, UserState } from "../Reducers/userReducer";
 import {
   addUserAction,
   removeUserStreamAction,
   addUserNameAction,
   addAllUsersAction,
 } from "../Reducers/userActions";
-import { chatReducer } from "../Reducers/chatReducer";
-import { MessageType } from "../types/chat";
-import {
-  addHistoryAction,
-  addMessageAction,
-  toggleChatAction,
-} from "../Reducers/chatActions";
+// import { chatReducer } from "../Reducers/chatReducer";
+// import { MessageType } from "../types/chat";
+// import {
+//   addHistoryAction,
+//   addMessageAction,
+//   toggleChatAction,
+// } from "../Reducers/chatActions";
+import { UserContext } from "./UserContext";
+import { ws } from "../ws";
+import { IUser } from "../types/users";
 
-const WS_Url = "ws://localhost:8080";
+// const WS_Url = "ws://localhost:8080";
 
-const ws = new WebSocket(WS_Url);
+// const ws = new WebSocket(WS_Url);
 
-export const RoomContext = createContext<null | any>(null);
+interface RoomProps {
+  stream?: MediaStream;
+  allUsers: UserState;
+  screenShare: () => void;
+  sharedScreenID: string;
+  setRoomId: (id: string) => void;
+  roomId: string;
+}
+
+export const RoomContext = createContext<RoomProps>({
+  allUsers: {},
+  screenShare: () => {},
+  sharedScreenID: "",
+  setRoomId: (id: string) => {},
+  roomId: "",
+});
 
 interface Props {
   children: ReactNode;
@@ -35,20 +53,18 @@ interface Props {
 
 export const RoomProvider: React.FunctionComponent<Props> = ({ children }) => {
   const [user, setUser] = useState<Peer>();
-  const [userName, setUserName] = useState(
-    localStorage.getItem("userName") || ""
-  );
+  const { userId, userName } = useContext(UserContext);
   const [stream, setStream] = useState<MediaStream>();
-  const [chat, chatDispatch] = useReducer(chatReducer, {
-    messages: [],
-    isChatOpen: false,
-  });
+  // const [chat, chatDispatch] = useReducer(chatReducer, {
+  //   messages: [],
+  //   isChatOpen: false,
+  // });
   const [allUsers, dispatch] = useReducer(userReducer, {});
-  const [sharedScreenID, setSharedScreenID] = useState<String>();
+  const [sharedScreenID, setSharedScreenID] = useState<string>("");
   const [connections, setConnections] = useState<Map<string, MediaConnection>>(
     new Map()
   );
-  const [roomId, setRoomId] = useState<string>();
+  const [roomId, setRoomId] = useState<string>("");
 
   const navigate = useNavigate();
 
@@ -59,7 +75,7 @@ export const RoomProvider: React.FunctionComponent<Props> = ({ children }) => {
   const getUsers = ({
     participants,
   }: {
-    participants: Record<string, { userName: string }>;
+    participants: Record<string, IUser>;
   }) => {
     console.log(participants, " GETTING USERS");
     dispatch(addAllUsersAction(participants));
@@ -80,20 +96,6 @@ export const RoomProvider: React.FunctionComponent<Props> = ({ children }) => {
       newConnections.delete(peerId);
       return newConnections;
     });
-  };
-
-  const chatMessage = (message: MessageType) => {
-    console.log(message, " NEW MESSAGE RECIEVED");
-    chatDispatch(addMessageAction(message));
-  };
-
-  const addChatHistory = (message: MessageType[]) => {
-    console.log(message, " ADDED TO HISTORY");
-    chatDispatch(addHistoryAction(message));
-  };
-
-  const toggleChat = () => {
-    chatDispatch(toggleChatAction(!chat.isChatOpen));
   };
 
   const nameChangeHandler = ({
@@ -133,13 +135,6 @@ export const RoomProvider: React.FunctionComponent<Props> = ({ children }) => {
     if (message.type === "user-stopped-sharing") {
       setSharedScreenID("");
     }
-    if (message.type === "chat-message") {
-      chatMessage(message.messageContent);
-      console.log(message.messageContent);
-    }
-    if (message.type === "getMessages") {
-      addChatHistory(message.chats);
-    }
     if (message.type === "name-changed") {
       console.log(message);
       nameChangeHandler({
@@ -151,7 +146,7 @@ export const RoomProvider: React.FunctionComponent<Props> = ({ children }) => {
   //Sharing The Screen
   const switchStream = (stream: MediaStream) => {
     setStream(stream);
-    setSharedScreenID(user?.id || "");
+    setSharedScreenID(userId || "");
     console.log(connections);
     connections.forEach((connection) => {
       const videoStream = stream
@@ -177,22 +172,6 @@ export const RoomProvider: React.FunctionComponent<Props> = ({ children }) => {
   };
 
   //Chat
-  const sendMessage = (message: string) => {
-    const messageData: MessageType = {
-      content: message,
-      author: user?.id || "",
-      timestamp: new Date().getTime(),
-    };
-    console.log(messageData);
-    chatDispatch(addMessageAction(messageData));
-    ws.send(
-      JSON.stringify({
-        type: "sendMessage",
-        roomID: roomId,
-        message: messageData,
-      })
-    );
-  };
 
   // useEffect(() => {
   //   const userId = uuidV4();
@@ -279,11 +258,10 @@ export const RoomProvider: React.FunctionComponent<Props> = ({ children }) => {
 
   useEffect(() => {
     if (ws.readyState === WebSocket.OPEN) {
-      console.log(user?.id);
       ws.send(
         JSON.stringify({
           type: "userChangedName",
-          userId: user?.id,
+          userId: userId,
           userName: userName,
           roomId: roomId,
         })
@@ -295,7 +273,7 @@ export const RoomProvider: React.FunctionComponent<Props> = ({ children }) => {
           ws.send(
             JSON.stringify({
               type: "userChangedName",
-              userID: user?.id,
+              userID: userId,
               userName: userName,
               roomId: roomId,
             })
@@ -304,14 +282,8 @@ export const RoomProvider: React.FunctionComponent<Props> = ({ children }) => {
         { once: true }
       );
     }
-  }, [userName, user, roomId]);
+  }, [userName, roomId]);
   useEffect(() => {
-    let userId = localStorage.getItem("userId");
-    if (!userId) {
-      userId = uuidV4();
-      localStorage.setItem("userId", userId);
-    }
-
     const newUser = new Peer(userId, {
       host: "localhost",
       port: 9001,
@@ -408,18 +380,12 @@ export const RoomProvider: React.FunctionComponent<Props> = ({ children }) => {
   return (
     <RoomContext.Provider
       value={{
-        ws,
-        user,
         stream,
         allUsers,
         screenShare,
         sharedScreenID,
+        roomId,
         setRoomId,
-        sendMessage,
-        chat,
-        toggleChat,
-        userName,
-        setUserName,
       }}
     >
       {children}

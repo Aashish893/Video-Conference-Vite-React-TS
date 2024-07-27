@@ -98,6 +98,7 @@ export const roomHandler = (ws:WebSocket) => {
             Chats[roomId] = []
             Chats[roomId].push(message);
         }
+        console.log(Chats);
         broadcast(roomId,{type: "chat-message", messageContent : message}, userId);
     }
     const broadcast = (roomId : string, message : any, userId : string) => {

@@ -1,8 +1,9 @@
 import { useContext } from "react";
 import { RoomContext } from "../ReactContexts/RoomConnectContext";
+import { UserContext } from "../ReactContexts/UserContext";
 
-export const NameInput: React.FC = ({}) => {
-  const { userName, setUserName } = useContext(RoomContext);
+export const NameInput: React.FC = () => {
+  const { userName, setUserName } = useContext(UserContext);
   return (
     <div>
       <input
