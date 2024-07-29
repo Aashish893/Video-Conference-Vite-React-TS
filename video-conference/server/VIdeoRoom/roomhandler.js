@@ -4,6 +4,7 @@ exports.roomHandler = void 0;
 var uuid_1 = require("uuid");
 var Rooms = {};
 var Chats = {};
+var SharingScreen = {};
 var connectionMap = {};
 var roomHandler = function (ws) {
     var createRoom = function () {
@@ -32,6 +33,9 @@ var roomHandler = function (ws) {
         ws.send(JSON.stringify({ type: 'getMessages', chats: Chats[roomId], roomID: roomId, participants: Rooms[roomId] }));
         //send to particular user ID
         // sendToSpecificUser(roomId, userId, { type: 'getMessages', chats : Chats[roomId]});
+        if (SharingScreen[roomId]) {
+            ws.send(JSON.stringify({ type: 'user-started-sharing', userID: SharingScreen[roomId] }));
+        }
         ws.on('close', function () {
             leftRoom({ roomId: roomId, userId: userId });
         });
@@ -46,6 +50,10 @@ var roomHandler = function (ws) {
         if (connectionMap[roomId]) {
             connectionMap[roomId] = connectionMap[roomId].filter(function (client) { return client.userId !== userId; });
         }
+        if (SharingScreen[roomId] === userId) {
+            delete SharingScreen[roomId];
+            broadcast(roomId, { type: 'user-stopped-sharing', userID: userId }, userId);
+        }
         // Broadcast userLeft event
         broadcast(roomId, { type: 'userLeft', roomID: roomId, userID: userId }, userId);
         // Update remaining users
@@ -53,9 +61,11 @@ var roomHandler = function (ws) {
     };
     var startSharing = function (_a) {
         var roomId = _a.roomId, userId = _a.userId;
+        SharingScreen[roomId] = userId;
         broadcast(roomId, { type: 'user-started-sharing', userID: userId }, userId);
     };
     var stopSharing = function (roomId, userId) {
+        delete SharingScreen[roomId];
         broadcast(roomId, { type: 'user-stopped-sharing' }, userId);
     };
     var addMessage = function (roomId, message, userId) {

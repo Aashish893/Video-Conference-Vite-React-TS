@@ -14,12 +14,17 @@ import { ChatContext } from "../ReactContexts/ChatContext";
 
 const RoomDisplay: React.FC = () => {
   const { id } = useParams();
-  const { stream, allUsers, screenShare, sharedScreenID, setRoomId } =
-    useContext(RoomContext);
+  const {
+    stream,
+    allUsers,
+    screenShare,
+    sharedScreenID,
+    setRoomId,
+    shareStream,
+  } = useContext(RoomContext);
 
   const { userName, userId } = useContext(UserContext);
   const { chat, toggleChat } = useContext(ChatContext);
-  console.log(chat);
   useEffect(() => {
     setTimeout(() => {
       ws.send(
@@ -31,15 +36,16 @@ const RoomDisplay: React.FC = () => {
         })
       );
     }, 1000);
-  }, [id, userId, userName, stream]);
+  }, [id, userId]);
   console.log(stream);
+  console.log(shareStream);
 
   useEffect(() => {
     setRoomId(id || "");
   }, [id, setRoomId]);
 
   const screenSharedVideo =
-    sharedScreenID === userId ? stream : allUsers[sharedScreenID]?.stream;
+    sharedScreenID === userId ? shareStream : allUsers[sharedScreenID]?.stream;
 
   const { [sharedScreenID]: sharing, ...usersToShow } = allUsers;
   return (

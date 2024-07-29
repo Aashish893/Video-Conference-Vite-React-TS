@@ -23,6 +23,7 @@ interface User{
 
 const Rooms : Record<string, Record<string, User>> = {}
 const Chats : Record<string, MessageType []> = {}
+const SharingScreen : Record<string, string> = {}
 
 interface WebSocketMap {
     [roomId: string]: { ws: WebSocket, userId: string }[];
@@ -59,6 +60,9 @@ export const roomHandler = (ws:WebSocket) => {
         ws.send(JSON.stringify({ type: 'getMessages', chats : Chats[roomId], roomID : roomId , participants :Rooms[roomId] }));
         //send to particular user ID
         // sendToSpecificUser(roomId, userId, { type: 'getMessages', chats : Chats[roomId]});
+        if (SharingScreen[roomId]) {
+            ws.send(JSON.stringify({ type: 'user-started-sharing', userID: SharingScreen[roomId] }));
+        }
         ws.on('close', () =>{
             leftRoom({roomId, userId});
         })
@@ -74,7 +78,10 @@ export const roomHandler = (ws:WebSocket) => {
         if (connectionMap[roomId]) {
             connectionMap[roomId] = connectionMap[roomId].filter(client => client.userId !== userId);
         }
-
+        if (SharingScreen[roomId] === userId) {
+            delete SharingScreen[roomId];
+            broadcast(roomId, { type: 'user-stopped-sharing', userID: userId }, userId);
+        }
         // Broadcast userLeft event
         broadcast(roomId, { type: 'userLeft', roomID: roomId, userID: userId }, userId);
 
@@ -84,10 +91,12 @@ export const roomHandler = (ws:WebSocket) => {
     }
 
     const startSharing = ({roomId,userId}: RoomProps) =>{
+        SharingScreen[roomId] = userId;
         broadcast(roomId,{type : 'user-started-sharing',userID : userId}, userId);
     }
 
     const stopSharing = (roomId : string, userId : string) =>{
+        delete SharingScreen[roomId];
         broadcast(roomId,{type : 'user-stopped-sharing'}, userId);
     }
 
