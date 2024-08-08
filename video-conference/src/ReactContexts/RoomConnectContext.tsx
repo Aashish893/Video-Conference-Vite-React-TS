@@ -97,26 +97,31 @@ export const RoomProvider: React.FunctionComponent<Props> = ({ children }) => {
   };
 
   const handleMessage = (message: any) => {
-    if (message.type === "createRoomSuccess") {
-      enterRoom({ roomId: message.roomID });
-    }
-    if (message.type === "getUsers") {
-      getUsers({ participants: message.participants });
-    }
-    if (message.type === "userLeft") {
-      removeUser(message.userID);
-    }
-    if (message.type === "user-started-sharing") {
-      setSharedScreenID(message.userID);
-    }
-    if (message.type === "user-stopped-sharing") {
-      setSharedScreenID("");
-    }
-    if (message.type === "name-changed") {
-      nameChangeHandler({
-        userId: message.messageContent.userId,
-        userName: message.messageContent.userName,
-      });
+    console.log("Received message:", message);
+    switch (message.type) {
+      case "createRoomSuccess":
+        enterRoom({ roomId: message.roomID });
+        break;
+      case "getUsers":
+        getUsers({ participants: message.participants });
+        break;
+      case "userLeft":
+        removeUser(message.userID);
+        break;
+      case "user-started-sharing":
+        setSharedScreenID(message.userID);
+        break;
+      case "user-stopped-sharing":
+        setSharedScreenID("");
+        break;
+      case "name-changed":
+        nameChangeHandler({
+          userId: message.messageContent.userId,
+          userName: message.messageContent.userName,
+        });
+        break;
+      default:
+        console.warn("Unhandled message type:", message.type);
     }
   };
 
@@ -307,6 +312,7 @@ export const RoomProvider: React.FunctionComponent<Props> = ({ children }) => {
     });
   }, [stream, user, shareStream, sharedScreenID, roomId, userName]);
 
+  console.log(allUsers);
   const value = {
     stream,
     allUsers,

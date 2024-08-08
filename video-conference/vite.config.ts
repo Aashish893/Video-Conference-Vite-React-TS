@@ -11,5 +11,14 @@ export default defineConfig({
     coverage: {
       reporter: ['text', 'json', 'html'],
     },
+    e2e: {
+      setupNodeEvents(on) {
+        on('file:preprocessor', vitePreprocessor())
+      },
+    },
+  },
+  server: {
+    host: true,
+    port: 3000,
   },
 })

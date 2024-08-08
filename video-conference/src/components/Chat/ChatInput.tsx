@@ -8,6 +8,7 @@ export const ChatInput: React.FC = ({}) => {
   const [message, setMessage] = useState("");
   const { roomId } = useContext(RoomContext);
   const { userId } = useContext(UserContext);
+  console.log(userId);
   const { sendMessage } = useContext(ChatContext);
   return (
     <div>
@@ -24,7 +25,7 @@ export const ChatInput: React.FC = ({}) => {
             onChange={(e) => setMessage(e.target.value)}
             value={message}
           />
-          <Buttons type="submit" className="py-2 px-4">
+          <Buttons type="submit" className="py-2 px-4" testId="send-chat-msg">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               fill="none"

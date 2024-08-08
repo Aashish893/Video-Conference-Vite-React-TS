@@ -5,7 +5,9 @@ import classNames from "classnames";
 import { UserContext } from "../../ReactContexts/UserContext";
 export const ChatBubble: React.FC<{ message: MessageType }> = ({ message }) => {
   const { allUsers } = useContext(RoomContext);
+  console.log(allUsers);
   const { userId } = useContext(UserContext);
+  console.log(message);
   const author = message.author && allUsers[message.author].userName;
   const userName = author || "Anonnymous";
   const isSelf = message.author === userId;

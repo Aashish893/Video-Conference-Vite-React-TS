@@ -26,16 +26,24 @@ const RoomDisplay: React.FC = () => {
   const { userName, userId } = useContext(UserContext);
   const { chat, toggleChat } = useContext(ChatContext);
   useEffect(() => {
-    setTimeout(() => {
-      ws.send(
-        JSON.stringify({
-          type: "joinRoom",
-          roomID: id,
-          userID: userId,
-          UN: userName,
-        })
-      );
-    }, 1000);
+    // setTimeout(() => {
+    //   ws.send(
+    //     JSON.stringify({
+    //       type: "joinRoom",
+    //       roomID: id,
+    //       userID: userId,
+    //       UN: userName,
+    //     })
+    //   );
+    // }, 1000);
+    ws.send(
+      JSON.stringify({
+        type: "joinRoom",
+        roomID: id,
+        userID: userId,
+        UN: userName,
+      })
+    );
   }, [id, userId]);
 
   useEffect(() => {

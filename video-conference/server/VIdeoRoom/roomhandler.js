@@ -20,7 +20,6 @@ var roomHandler = function (ws) {
         if (!Chats[roomId])
             Chats[roomId] = [];
         Rooms[roomId][userId] = { userId: userId, userName: userName };
-        console.log(Rooms, "AFTER USER JOINED");
         // Check if the user is already in the connectionMap
         var userAlreadyInRoom = connectionMap[roomId].some(function (client) { return client.userId === userId; });
         if (!userAlreadyInRoom) {
@@ -28,11 +27,9 @@ var roomHandler = function (ws) {
         }
         // connectionMap[roomId].push({ws, userId});
         // Broadcast to all ws.send(JSON.stringify({ type: 'userJoined', roomID : roomId, userID : userId })); 
-        broadcast(roomId, { type: 'userJoined', roomID: roomId, userID: userId, UN: userName }, userId);
         ws.send(JSON.stringify({ type: 'getUsers', roomID: roomId, participants: Rooms[roomId] }));
+        broadcast(roomId, { type: 'userJoined', roomID: roomId, userID: userId, UN: userName }, userId);
         ws.send(JSON.stringify({ type: 'getMessages', chats: Chats[roomId], roomID: roomId, participants: Rooms[roomId] }));
-        //send to particular user ID
-        // sendToSpecificUser(roomId, userId, { type: 'getMessages', chats : Chats[roomId]});
         if (SharingScreen[roomId]) {
             ws.send(JSON.stringify({ type: 'user-started-sharing', userID: SharingScreen[roomId] }));
         }
@@ -41,10 +38,6 @@ var roomHandler = function (ws) {
         });
     };
     var leftRoom = function (_a) {
-        // Rooms[roomId] = Rooms[roomId].filter(id => id !== userId);
-        // if (Rooms[roomId]) {
-        //     delete Rooms[roomId][userId];
-        // }
         var roomId = _a.roomId, userId = _a.userId;
         // Remove user from connectionMap
         if (connectionMap[roomId]) {
@@ -77,6 +70,7 @@ var roomHandler = function (ws) {
             Chats[roomId].push(message);
         }
         console.log(Chats);
+        console.log(userId);
         broadcast(roomId, { type: "chat-message", messageContent: message }, userId);
     };
     var broadcast = function (roomId, message, userId) {
@@ -96,9 +90,7 @@ var roomHandler = function (ws) {
     };
     var changeName = function (_a) {
         var userId = _a.userId, userName = _a.userName, roomId = _a.roomId;
-        console.log(Rooms, userId, roomId, userName);
         if (Rooms[roomId] && Rooms[roomId][userId]) {
-            console.log('Updating Name');
             Rooms[roomId][userId].userName = userName;
             broadcast(roomId, { type: "name-changed", messageContent: { userId: userId, userName: userName } }, userId);
         }

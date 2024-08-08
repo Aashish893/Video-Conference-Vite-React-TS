@@ -43,7 +43,6 @@ export const roomHandler = (ws:WebSocket) => {
         if(!Rooms[roomId]) Rooms[roomId] = {};
         if(!Chats[roomId]) Chats[roomId] = [];
         Rooms[roomId][userId] = {userId, userName};
-        console.log(Rooms, "AFTER USER JOINED");
         // Check if the user is already in the connectionMap
         const userAlreadyInRoom = connectionMap[roomId].some(client => client.userId === userId);
 
@@ -53,12 +52,12 @@ export const roomHandler = (ws:WebSocket) => {
 
         // connectionMap[roomId].push({ws, userId});
         // Broadcast to all ws.send(JSON.stringify({ type: 'userJoined', roomID : roomId, userID : userId })); 
-        
-        broadcast(roomId,{type : 'userJoined', roomID : roomId, userID : userId, UN : userName}, userId);
         ws.send(JSON.stringify({ type: 'getUsers', roomID : roomId , participants :Rooms[roomId] }));
+
+        broadcast(roomId,{type : 'userJoined', roomID : roomId, userID : userId, UN : userName}, userId);
+        
         ws.send(JSON.stringify({ type: 'getMessages', chats : Chats[roomId], roomID : roomId , participants :Rooms[roomId] }));
-        //send to particular user ID
-        // sendToSpecificUser(roomId, userId, { type: 'getMessages', chats : Chats[roomId]});
+
         if (SharingScreen[roomId]) {
             ws.send(JSON.stringify({ type: 'user-started-sharing', userID: SharingScreen[roomId] }));
         }
@@ -102,6 +101,7 @@ export const roomHandler = (ws:WebSocket) => {
             Chats[roomId].push(message);
         }
         console.log(Chats);
+        console.log(userId);
         broadcast(roomId,{type: "chat-message", messageContent : message}, userId);
     }
     const broadcast = (roomId : string, message : any, userId : string) => {
@@ -124,9 +124,7 @@ export const roomHandler = (ws:WebSocket) => {
     }
 
     const changeName = ({userId,userName, roomId} : {userId : string, userName : string, roomId : string}) => {
-        console.log(Rooms, userId, roomId, userName);
         if (Rooms[roomId] && Rooms[roomId][userId]) {
-            console.log('Updating Name');
             Rooms[roomId][userId].userName = userName;
             broadcast(roomId, { type: "name-changed", messageContent: { userId, userName } }, userId);
         } else {
