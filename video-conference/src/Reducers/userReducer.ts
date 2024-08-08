@@ -22,7 +22,6 @@ export type UserActions =
 };
 
 export const userReducer = (state : UserState, action : UserActions) => {
-    console.log(action, " THIS IS THE ACTION !! ", state);
     switch(action.type){
         case ADD_USER:
             return{

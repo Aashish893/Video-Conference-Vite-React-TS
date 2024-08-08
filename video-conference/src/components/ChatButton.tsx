@@ -2,7 +2,7 @@ import { Buttons } from "./general/Buttons";
 
 export const ChatButton: React.FC<{ onClick: () => void }> = ({ onClick }) => {
   return (
-    <Buttons onClick={onClick} className="py-4 px-4">
+    <Buttons onClick={onClick} className="py-4 px-4" testId="chat-button">
       <svg
         xmlns="http://www.w3.org/2000/svg"
         fill="none"

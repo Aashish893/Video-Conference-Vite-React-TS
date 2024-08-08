@@ -5,5 +5,7 @@ export const VideoCall: React.FC<{ stream?: MediaStream }> = ({ stream }) => {
   useEffect(() => {
     if (videoRef.current && stream) videoRef.current.srcObject = stream;
   }, [stream]);
-  return <video ref={videoRef} autoPlay muted={true} />;
+  return (
+    <video data-testid="user-video" ref={videoRef} autoPlay muted={true} />
+  );
 };

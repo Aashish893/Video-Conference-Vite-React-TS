@@ -37,8 +37,6 @@ const RoomDisplay: React.FC = () => {
       );
     }, 1000);
   }, [id, userId]);
-  console.log(stream);
-  console.log(shareStream);
 
   useEffect(() => {
     setRoomId(id || "");

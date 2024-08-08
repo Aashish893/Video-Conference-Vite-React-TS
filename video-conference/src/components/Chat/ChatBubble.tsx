@@ -6,14 +6,13 @@ import { UserContext } from "../../ReactContexts/UserContext";
 export const ChatBubble: React.FC<{ message: MessageType }> = ({ message }) => {
   const { allUsers } = useContext(RoomContext);
   const { userId } = useContext(UserContext);
-  console.log(allUsers);
   const author = message.author && allUsers[message.author].userName;
   const userName = author || "Anonnymous";
   const isSelf = message.author === userId;
   const time = new Date(message.timestamp).toLocaleTimeString();
-  if (!message || !message.author) {
-    return null; // or return some fallback UI
-  }
+  // if (!message || !message.author) {
+  //   return null; // or return some fallback UI
+  // }
 
   return (
     <div
@@ -30,14 +29,15 @@ export const ChatBubble: React.FC<{ message: MessageType }> = ({ message }) => {
           })}
         >
           {message.content}
-        </div>
-        <div
-          className={classNames("text-xs opacity-50", {
-            "text-right": isSelf,
-            "text-left": !isSelf,
-          })}
-        >
-          {time}
+
+          <div
+            className={classNames("text-xs opacity-50", {
+              "text-right": isSelf,
+              "text-left": !isSelf,
+            })}
+          >
+            {time}
+          </div>
         </div>
         <div
           className={classNames("text-s", {

@@ -34,10 +34,8 @@ export const ChatProvider: React.FC<ChatProps> = ({ children }) => {
   });
 
   const handleMessage = (message: any) => {
-    console.log(message);
     if (message.type === "chat-message") {
       chatMessage(message.messageContent);
-      console.log(message.messageContent);
     }
     if (message.type === "getMessages") {
       addChatHistory(message.chats);
@@ -50,7 +48,6 @@ export const ChatProvider: React.FC<ChatProps> = ({ children }) => {
       author,
       timestamp: new Date().getTime(),
     };
-    console.log(messageData);
     chatDispatch(addMessageAction(messageData));
     ws.send(
       JSON.stringify({
@@ -62,12 +59,10 @@ export const ChatProvider: React.FC<ChatProps> = ({ children }) => {
   };
 
   const chatMessage = (message: MessageType) => {
-    console.log(message, " NEW MESSAGE RECIEVED");
     chatDispatch(addMessageAction(message));
   };
 
   const addChatHistory = (message: MessageType[]) => {
-    console.log(message, " ADDED TO HISTORY");
     chatDispatch(addHistoryAction(message));
   };
 

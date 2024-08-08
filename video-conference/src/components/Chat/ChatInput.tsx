@@ -8,7 +8,6 @@ export const ChatInput: React.FC = ({}) => {
   const [message, setMessage] = useState("");
   const { roomId } = useContext(RoomContext);
   const { userId } = useContext(UserContext);
-  console.log(userId);
   const { sendMessage } = useContext(ChatContext);
   return (
     <div>

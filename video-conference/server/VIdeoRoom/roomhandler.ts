@@ -31,7 +31,6 @@ interface WebSocketMap {
 
 const connectionMap : WebSocketMap = {}; 
 
-
 export const roomHandler = (ws:WebSocket) => {
     const createRoom = () =>{
         const generatedRoomId = uuidv4();
@@ -69,11 +68,6 @@ export const roomHandler = (ws:WebSocket) => {
     };
 
     const leftRoom = ({roomId, userId} : RoomProps) => {
-        // Rooms[roomId] = Rooms[roomId].filter(id => id !== userId);
-        // if (Rooms[roomId]) {
-        //     delete Rooms[roomId][userId];
-        // }
-
         // Remove user from connectionMap
         if (connectionMap[roomId]) {
             connectionMap[roomId] = connectionMap[roomId].filter(client => client.userId !== userId);

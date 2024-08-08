@@ -1,5 +1,5 @@
 export interface MessageType {
     content : string;
-    author : string;
+    author? : string;
     timestamp : number;
 }

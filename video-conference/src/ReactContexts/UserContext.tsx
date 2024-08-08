@@ -32,7 +32,6 @@ export const UserProvider: React.FC<UserProps> = ({ children }) => {
   useEffect(() => {
     localStorage.setItem("userName", userName);
   }, [userName]);
-  console.log(userId);
   return (
     <UserContext.Provider value={{ userId, userName, setUserName }}>
       {children}
