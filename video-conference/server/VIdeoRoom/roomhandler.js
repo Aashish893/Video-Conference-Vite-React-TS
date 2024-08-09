@@ -15,18 +15,19 @@ var roomHandler = function (ws) {
     };
     var joinRoom = function (_a) {
         var roomId = _a.roomId, userId = _a.userId, userName = _a.userName;
+        console.log("Cypress is trying to access roomId: ".concat(roomId));
         if (!Rooms[roomId])
             Rooms[roomId] = {};
         if (!Chats[roomId])
             Chats[roomId] = [];
+        // Initialize connectionMap[roomId] if it doesn't exist
+        if (!connectionMap[roomId])
+            connectionMap[roomId] = [];
         Rooms[roomId][userId] = { userId: userId, userName: userName };
-        // Check if the user is already in the connectionMap
         var userAlreadyInRoom = connectionMap[roomId].some(function (client) { return client.userId === userId; });
         if (!userAlreadyInRoom) {
             connectionMap[roomId].push({ ws: ws, userId: userId });
         }
-        // connectionMap[roomId].push({ws, userId});
-        // Broadcast to all ws.send(JSON.stringify({ type: 'userJoined', roomID : roomId, userID : userId })); 
         ws.send(JSON.stringify({ type: 'getUsers', roomID: roomId, participants: Rooms[roomId] }));
         broadcast(roomId, { type: 'userJoined', roomID: roomId, userID: userId, UN: userName }, userId);
         ws.send(JSON.stringify({ type: 'getMessages', chats: Chats[roomId], roomID: roomId, participants: Rooms[roomId] }));

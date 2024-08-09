@@ -39,31 +39,34 @@ export const roomHandler = (ws:WebSocket) => {
         ws.send(JSON.stringify({ type: 'createRoomSuccess', roomID : generatedRoomId }));
     };
 
-    const joinRoom = ({roomId, userId, userName} :UserProps) => {
-        if(!Rooms[roomId]) Rooms[roomId] = {};
-        if(!Chats[roomId]) Chats[roomId] = [];
-        Rooms[roomId][userId] = {userId, userName};
-        // Check if the user is already in the connectionMap
+    const joinRoom = ({ roomId, userId, userName }: UserProps) => {
+        console.log(`Cypress is trying to access roomId: ${roomId}`);
+    
+        if (!Rooms[roomId]) Rooms[roomId] = {};
+        if (!Chats[roomId]) Chats[roomId] = [];
+        
+        // Initialize connectionMap[roomId] if it doesn't exist
+        if (!connectionMap[roomId]) connectionMap[roomId] = [];
+        
+        Rooms[roomId][userId] = { userId, userName };
+        
         const userAlreadyInRoom = connectionMap[roomId].some(client => client.userId === userId);
-
+    
         if (!userAlreadyInRoom) {
             connectionMap[roomId].push({ ws, userId });
         }
-
-        // connectionMap[roomId].push({ws, userId});
-        // Broadcast to all ws.send(JSON.stringify({ type: 'userJoined', roomID : roomId, userID : userId })); 
-        ws.send(JSON.stringify({ type: 'getUsers', roomID : roomId , participants :Rooms[roomId] }));
-
-        broadcast(roomId,{type : 'userJoined', roomID : roomId, userID : userId, UN : userName}, userId);
-        
-        ws.send(JSON.stringify({ type: 'getMessages', chats : Chats[roomId], roomID : roomId , participants :Rooms[roomId] }));
-
+    
+        ws.send(JSON.stringify({ type: 'getUsers', roomID: roomId, participants: Rooms[roomId] }));
+        broadcast(roomId, { type: 'userJoined', roomID: roomId, userID: userId, UN: userName }, userId);
+        ws.send(JSON.stringify({ type: 'getMessages', chats: Chats[roomId], roomID: roomId, participants: Rooms[roomId] }));
+    
         if (SharingScreen[roomId]) {
             ws.send(JSON.stringify({ type: 'user-started-sharing', userID: SharingScreen[roomId] }));
         }
-        ws.on('close', () =>{
-            leftRoom({roomId, userId});
-        })
+    
+        ws.on('close', () => {
+            leftRoom({ roomId, userId });
+        });
     };
 
     const leftRoom = ({roomId, userId} : RoomProps) => {
