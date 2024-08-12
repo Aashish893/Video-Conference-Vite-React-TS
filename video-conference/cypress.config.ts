@@ -5,9 +5,14 @@ export default defineConfig({
     setupNodeEvents(on, config) {
       let ws;
       on('task',{
-        connect(){
-          ws = new WebSocket('ws://localhost:8080'); // Server-side WebSocket connection
-          console.log('Connected to WebSocket server');
+        connect() {
+          ws = new WebSocket('ws://localhost:8080'); 
+          ws.on('open', () => {
+            console.log('Connected to WebSocket server');
+          });
+          ws.on('error', (error) => {
+            console.log('WebSocket error:', error);
+          });
           return null;
         },
         

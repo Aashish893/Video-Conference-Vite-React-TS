@@ -18,7 +18,7 @@ import {
 import { UserContext } from "./UserContext";
 import { ws } from "../ws";
 import { IUser } from "../types/users";
-
+import global from "../types/window";
 interface RoomProps {
   stream?: MediaStream;
   allUsers: UserState;
@@ -27,6 +27,10 @@ interface RoomProps {
   sharedScreenID: string;
   setRoomId: (id: string) => void;
   roomId: string;
+}
+
+if (!!window.Cypress) {
+  window.Peer = Peer;
 }
 
 export const RoomContext = createContext<RoomProps>({

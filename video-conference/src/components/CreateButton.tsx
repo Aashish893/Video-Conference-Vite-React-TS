@@ -4,11 +4,11 @@ import { Buttons } from "./general/Buttons";
 
 export const Create: React.FC = () => {
   const CreateRoom = () => {
-    // setTimeout(() => {
-    //   ws.send(JSON.stringify({ type: "createRoom" }));
-    // }, 200);
+    setTimeout(() => {
+      ws.send(JSON.stringify({ type: "createRoom" }));
+    }, 200);
 
-    ws.send(JSON.stringify({ type: "createRoom" }));
+    // ws.send(JSON.stringify({ type: "createRoom" }));
   };
 
   return (
